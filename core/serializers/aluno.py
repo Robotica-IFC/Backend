@@ -16,3 +16,17 @@ class AlunoSerializer(ModelSerializer):
     def create(self, validated_data):  # criptografa a senha ASS: Lucas
         validated_data["senha"] = make_password(validated_data["senha"])
         return super().create(validated_data)
+
+
+class AlunoListSerializer(ModelSerializer):
+    class Meta:
+        model = Aluno
+        fields = '__all__'
+        depth = 1
+
+
+class AlunoRetrieveSerializer(ModelSerializer):
+    class Meta:
+        model = Aluno
+        fields = 'attachment_key', 'file'
+        depth = 1

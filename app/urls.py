@@ -15,11 +15,13 @@ from rest_framework_simplejwt.views import (
 )
 
 from core.views import AlunoViewSet, UserRegistrationView, UserViewSet
+from core.views.professor import ProfessorViewSet
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
 
 router.register(r'alunos', AlunoViewSet, basename='alunos')
+router.register(r'professor', ProfessorViewSet, basename='professor')
 router.register(r'usuarios', UserViewSet, basename='usuarios')
 
 urlpatterns = [

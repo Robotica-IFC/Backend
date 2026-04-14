@@ -28,5 +28,5 @@ class AlunoListSerializer(ModelSerializer):
 class AlunoRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Aluno
-        fields = 'attachment_key', 'file'
+        fields = '__all__'
         depth = 1

@@ -1,3 +1,5 @@
+from email.mime import base
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -14,13 +16,14 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from core.views import AlunoViewSet, UserRegistrationView, UserViewSet
+from core.views import AlunoViewSet, ProfessorViewSet, UserRegistrationView, UserViewSet
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
 
 router.register(r'alunos', AlunoViewSet, basename='alunos')
 router.register(r'usuarios', UserViewSet, basename='usuarios')
+router.register(r'professores', ProfessorViewSet, basename='professores')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -1,10 +1,18 @@
 from django.contrib.auth.hashers import make_password
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, SlugRelatedField
 
 from core.models import Aluno
+from uploader.models import Image
 
 
 class AlunoSerializer(ModelSerializer):
+
+    imagem_perfil = SlugRelatedField(
+        queryset=Image.objects.all(),
+        slug_field='attachment_key',
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = Aluno

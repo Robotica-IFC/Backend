@@ -13,6 +13,7 @@ def image_file_path(image, _) -> str:
 
 class Image(models.Model):
     attachment_key = models.UUIDField(
+        primary_key=True,
         max_length=255,
         default=uuid.uuid4,
         unique=True,

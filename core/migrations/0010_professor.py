@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0010_alter_aluno_imagem_perfil'),
+        ('core', '0009_alter_aluno_imagem_perfil'),
         ('uploader', '0001_initial'),
     ]
 

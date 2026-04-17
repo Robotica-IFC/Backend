@@ -1,5 +1,3 @@
-from email.mime import base
-
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -49,4 +47,4 @@ urlpatterns = [
     # API
     path('api/', include(router.urls)),
 ]
-urlpatterns += static(settings.MEDIA_ENDPOINT, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

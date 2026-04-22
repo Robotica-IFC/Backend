@@ -15,7 +15,7 @@ class Aluno(models.Model):
     data_nascimento = models.DateField()
     ativo = models.BooleanField(default=True)
     email_verificado = models.BooleanField(default=False)
-    imagem_perfil = models.ForeignKey(Image, to_field='attachment_key', related_name='+', on_delete=models.SET_NULL, null=True, blank=True)  # noqa: E501
+    imagem_perfil = models.ForeignKey(Image, related_name='+', on_delete=models.SET_NULL, null=True, blank=True)  # noqa: E501
 
     def __str__(self):
         return f'{self.id} - {self.email}'

@@ -4,12 +4,20 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 def migrate_uuid_cast(apps, schema_editor):
-    # Esta função verifica se o banco de dados é PostgreSQL antes de rodar o SQL manual
+    # Só age se for PostgreSQL
     if schema_editor.connection.vendor == 'postgresql':
         with schema_editor.connection.cursor() as cursor:
-            # Converte a coluna de bigint para uuid usando cast explícito no Postgres
-            cursor.execute("ALTER TABLE core_aluno ALTER COLUMN imagem_perfil_id TYPE uuid USING (imagem_perfil_id::text::uuid);")
-            cursor.execute("ALTER TABLE core_professor ALTER COLUMN imagem_perfil_id TYPE uuid USING (imagem_perfil_id::text::uuid);")
+            # Tenta converter Aluno, ignora se a tabela não existir
+            try:
+                cursor.execute("ALTER TABLE core_aluno ALTER COLUMN imagem_perfil_id TYPE uuid USING (imagem_perfil_id::text::uuid);")
+            except Exception:
+                pass
+
+            # Tenta converter Professor, ignora se a tabela não existir
+            try:
+                cursor.execute("ALTER TABLE core_professor ALTER COLUMN imagem_perfil_id TYPE uuid USING (imagem_perfil_id::text::uuid);")
+            except Exception:
+                pass
 
 class Migration(migrations.Migration):
 
@@ -19,7 +27,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Executa a lógica de conversão apenas se necessário (Postgres)
         migrations.RunPython(migrate_uuid_cast, reverse_code=migrations.RunPython.noop),
         
         migrations.AlterField(

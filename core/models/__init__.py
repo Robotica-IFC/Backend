@@ -1,3 +1,5 @@
 from .aluno import Aluno
-from .user import User
+from .estado import Estado
+from .instituicao import Instituicao
 from .professor import Professor
+from .user import User

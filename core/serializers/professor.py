@@ -27,11 +27,11 @@ class ProfessorListSerializer(ModelSerializer):
     class Meta:
         model = Professor
         fields = '__all__'
-        depth = 1
+        depth = 2
 
 
 class ProfessorRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Professor
         fields = '__all__'
-        depth = 1
+        depth = 2

@@ -2,14 +2,16 @@ import uuid
 
 from django.db import models
 
-from .instituicao import Instituicao
 from uploader.models import Image
+
+from .instituicao import Instituicao
 
 
 class Professor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField(max_length=150)
     username = models.CharField(max_length=20, null=True, blank=True)
+    descricao = models.TextField(max_length=1000, null=True, blank=True)
     email = models.EmailField(unique=True)
     cpf = models.CharField(max_length=11, unique=True)
     senha = models.CharField(max_length=400)

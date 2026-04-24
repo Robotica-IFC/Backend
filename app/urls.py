@@ -14,7 +14,14 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from core.views import AlunoViewSet, EstadoViewSet, InstituicaoViewSet, ProfessorViewSet, UserRegistrationView, UserViewSet
+from core.views import (
+    AlunoViewSet,
+    EstadoViewSet,
+    InstituicaoViewSet,
+    ProfessorViewSet,
+    UserRegistrationView,
+    UserViewSet,
+)
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()

@@ -1,4 +1,5 @@
 from .aluno import AlunoViewSet
+from .equipe import EquipeViewSet
 from .estado import EstadoViewSet
 from .instituicao import InstituicaoViewSet
 from .professor import ProfessorViewSet

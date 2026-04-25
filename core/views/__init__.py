@@ -1,4 +1,5 @@
 from .aluno import AlunoViewSet
+from .auth import MyTokenObtainPairView
 from .estado import EstadoViewSet
 from .instituicao import InstituicaoViewSet
 from .professor import ProfessorViewSet

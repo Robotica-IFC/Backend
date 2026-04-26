@@ -7,7 +7,7 @@ from uploader.models import Image
 
 
 class ProfessorSerializer(ModelSerializer):
-    # Campos que pertencem ao USER, mas que o frontend envia no mesmo JSON
+    # Campos de escrita (continuam como você fez)
     name = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
     username = serializers.CharField(write_only=True)
@@ -23,13 +23,14 @@ class ProfessorSerializer(ModelSerializer):
     class Meta:
         model = Professor
         fields = (
-            "id", "name", "email", "username", "password", # Dados do User
+            "id", "name", "email", "username", "password", 
             "cpf", "telefone", "data_nascimento", "imagem_perfil", 
-            "instituicao", "ativo", "email_verificado", "is_professor"
+            "instituicao", "ativo", "email_verificado", "is_professor",
+            "user"  # <--- ADICIONE ISSO
         )
+        depth = 1 # <--- ADICIONE ISSO para trazer os dados do User no retorno
 
     def create(self, validated_data):
-        # 1. Extraímos os dados do Usuário que estão no validated_data
         user_data = {
             "name": validated_data.pop("name"),
             "email": validated_data.pop("email"),
@@ -37,12 +38,10 @@ class ProfessorSerializer(ModelSerializer):
             "password": make_password(validated_data.pop("password")),
         }
 
-        # 2. Criamos o Usuário primeiro
-        user = User.objects.create(**user_data)
+        # Use create_user (como no Aluno) para garantir o hash da senha corretamente
+        user = User.objects.create_user(**user_data)
 
-        # 3. Criamos o Professor associando-o ao usuário criado
         professor = Professor.objects.create(user=user, **validated_data)
-        
         return professor
 
 class ProfessorListSerializer(ModelSerializer):

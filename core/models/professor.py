@@ -6,15 +6,14 @@ from uploader.models import Image
 
 from .instituicao import Instituicao
 
+from .user import User
+
 
 class Professor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    nome = models.CharField(max_length=150)
-    username = models.CharField(max_length=20, null=True, blank=True)
-    descricao = models.TextField(max_length=1000, null=True, blank=True)
-    email = models.EmailField(unique=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professor_profile')
     cpf = models.CharField(max_length=11, unique=True)
-    senha = models.CharField(max_length=400)
+    descricao = models.TextField(max_length=1000, null=True, blank=True)
     telefone = models.CharField(max_length=15)
     data_nascimento = models.DateField()
     instituicao = models.ForeignKey(Instituicao, on_delete=models.SET_NULL, null=True, blank=True)
@@ -24,7 +23,7 @@ class Professor(models.Model):
     is_professor = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.id} - {self.email}'
+        return f'{self.id} - {self.user.email}'
 
     class Meta:
         verbose_name = 'professor'

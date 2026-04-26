@@ -8,10 +8,9 @@ from uploader.models import Image
 
 
 class AlunoSerializer(ModelSerializer):
-    # Campos que pertencem ao USER, mas que o frontend envia no formulário de ALUNO
-    email = serializers.EmailField(source='user.email')
-    name = serializers.CharField(source='user.name')
-    username = serializers.CharField(source='user.username') 
+    email = serializers.EmailField(write_only=True)
+    name = serializers.CharField(write_only=True)
+    username = serializers.CharField(write_only=True) 
     password = serializers.CharField(write_only=True)
 
     imagem_perfil = SlugRelatedField(
@@ -23,23 +22,26 @@ class AlunoSerializer(ModelSerializer):
 
     class Meta:
         model = Aluno
-        # Adicione os campos do User aqui também para que o Serializer os aceite
-        fields = ["id", "email", "name", "username", "password", "descricao", "cpf", "telefone", "data_nascimento", "imagem_perfil"]
+        fields = [
+            "id", "email", "name", "username", "password", 
+            "descricao", "cpf", "telefone", "data_nascimento", 
+            "imagem_perfil", "ativo", "email_verificado", "is_aluno", 'user'
+        ]
+        depth = 1
 
     def create(self, validated_data):
-        # 1. Separar os dados do User dos dados do Aluno
-        user_data = validated_data.pop('user')
+        email = validated_data.pop('email')
+        name = validated_data.pop('name')
+        username = validated_data.pop('username')
         password = validated_data.pop('password')
 
-        # 2. Criar o User usando o Manager (que cuida da criptografia da senha)
         user = User.objects.create_user(
-            email=user_data['email'],
-            name=user_data['name'],
-            username=user_data['username'],
+            email=email,
+            name=name,
+            username=username,
             password=password
         )
 
-        # 3. Criar o Aluno associado a esse User
         aluno = Aluno.objects.create(user=user, **validated_data)
         return aluno
 

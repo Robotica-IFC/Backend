@@ -28,26 +28,24 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Campos base do User - ADICIONE O USERNAME AQUI
         token['name'] = user.name
         token['email'] = user.email
-        token['username'] = user.username # <-- Faltava isso!
+        token['username'] = user.username
 
-        # Lógica de perfis:
         if hasattr(user, 'aluno_profile'):
             aluno = user.aluno_profile
             token['tipo'] = 'aluno'
             token['cpf'] = aluno.cpf
-            token['telefone'] = aluno.telefone   # <-- Faltava isso!
-            token['descricao'] = aluno.descricao # <-- Faltava isso!
+            token['telefone'] = aluno.telefone
+            token['descricao'] = aluno.descricao
             token['imagem_perfil'] = str(aluno.imagem_perfil.attachment_key) if aluno.imagem_perfil else None
 
         elif hasattr(user, 'professor_profile'):
             professor = user.professor_profile
             token['tipo'] = 'professor'
             token['cpf'] = professor.cpf
-            token['telefone'] = professor.telefone     # <-- Faltava isso!
-            token['descricao'] = professor.descricao   # <-- Faltava isso!
+            token['telefone'] = professor.telefone
+            token['descricao'] = professor.descricao
             token['imagem_perfil'] = str(professor.imagem_perfil.attachment_key) if professor.imagem_perfil else None
 
         else:

@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from uploader.models import Image
+
 from .user import User
 
 

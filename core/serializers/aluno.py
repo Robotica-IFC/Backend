@@ -1,7 +1,6 @@
-from django.contrib.auth.hashers import make_password
-from rest_framework.serializers import ModelSerializer, SlugRelatedField
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+# from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer, SlugRelatedField
 
 from core.models import Aluno, User
 from uploader.models import Image
@@ -10,7 +9,7 @@ from uploader.models import Image
 class AlunoSerializer(ModelSerializer):
     email = serializers.EmailField(write_only=True)
     name = serializers.CharField(write_only=True)
-    username = serializers.CharField(write_only=True) 
+    username = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
 
     imagem_perfil = SlugRelatedField(
@@ -23,8 +22,8 @@ class AlunoSerializer(ModelSerializer):
     class Meta:
         model = Aluno
         fields = [
-            "id", "email", "name", "username", "password", 
-            "descricao", "cpf", "telefone", "data_nascimento", 
+            "id", "email", "name", "username", "password",
+            "descricao", "cpf", "telefone", "data_nascimento",
             "imagem_perfil", "ativo", "email_verificado", "is_aluno", 'user'
         ]
         depth = 1
@@ -58,30 +57,3 @@ class AlunoRetrieveSerializer(ModelSerializer):
         model = Aluno
         fields = '__all__'
         depth = 1
-
-
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-
-        token['name'] = user.name
-        token['email'] = user.email
-        token['username'] = user.username
-
-        # MUDANÇA: Usar aluno_profile pois é o que está no seu models.py
-        if hasattr(user, 'aluno_profile'): 
-            aluno = user.aluno_profile
-            token['tipo'] = 'aluno'
-            token['cpf'] = aluno.cpf
-            token['telefone'] = aluno.telefone
-            token['descricao'] = aluno.descricao
-            
-            if aluno.imagem_perfil:
-                token['imagem_perfil'] = str(aluno.imagem_perfil.attachment_key)
-            else:
-                token['imagem_perfil'] = None
-        else:
-            token['tipo'] = 'professor'
-        
-        return token

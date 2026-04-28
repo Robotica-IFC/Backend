@@ -5,7 +5,6 @@ from django.db import models
 from uploader.models import Image
 
 from .instituicao import Instituicao
-
 from .user import User
 
 

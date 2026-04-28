@@ -46,6 +46,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             token['cpf'] = professor.cpf
             token['telefone'] = professor.telefone
             token['descricao'] = professor.descricao
+            token['instituicao'] = professor.instituicao
             token['imagem_perfil'] = str(professor.imagem_perfil.attachment_key) if professor.imagem_perfil else None
 
         else:

@@ -27,7 +27,6 @@ class ProfessorSerializer(ModelSerializer):
             "instituicao", "ativo", "email_verificado", "is_professor",
             "user", "descricao"
         )
-        depth = 2
 
     def create(self, validated_data):
         name = validated_data.pop("name")

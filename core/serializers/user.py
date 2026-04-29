@@ -38,7 +38,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             token['cpf'] = aluno.cpf
             token['telefone'] = aluno.telefone
             token['descricao'] = aluno.descricao
-            # token['data_nascimento'] = aluno.data_nascimento.isoformat()
             token['imagem_perfil'] = str(aluno.imagem_perfil.url) if aluno.imagem_perfil else None
 
         elif hasattr(user, 'professor_profile'):
@@ -47,9 +46,19 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             token['cpf'] = professor.cpf
             token['telefone'] = professor.telefone
             token['descricao'] = professor.descricao
-            token['instituicao'] = professor.instituicao
             token['imagem_perfil'] = str(professor.imagem_perfil.url) if professor.imagem_perfil else None
 
+            if professor.instituicao:
+                token['instituicao'] = {
+                    'id': str(professor.instituicao.id),
+                    'nome': professor.instituicao.nome,
+                    'sigla': professor.instituicao.sigla,
+                    'logo': str(professor.instituicao.logo.url) if professor.instituicao.logo else None,
+                    'estado': professor.instituicao.estado,
+                    'cidade': professor.instituicao.cidade,
+                }
+            else:
+                token['instituicao'] = None
         else:
             token['tipo'] = 'admin'
 

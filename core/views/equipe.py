@@ -2,7 +2,7 @@ from rest_framework import mixins, viewsets
 
 from core.models import Equipe
 from core.serializers import EquipeSerializer
-
+from core.pagination import EquipePagination
 
 class EquipeViewSet(
     mixins.CreateModelMixin,
@@ -12,6 +12,7 @@ class EquipeViewSet(
 ):
     queryset = Equipe.objects.all()
     serializer_class = EquipeSerializer
+    pagination_class = EquipePagination
 
     def perform_create(self, serializer):
         equipe = serializer.save()

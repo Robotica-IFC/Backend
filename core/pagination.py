@@ -11,5 +11,5 @@ class EquipePagination(PageNumberPagination):
             "total": self.page.paginator.count,
             "paginas": self.page.paginator.num_pages,
             "pagina_atual": self.page.number,
-            "items": data   
+            "items": data
         })

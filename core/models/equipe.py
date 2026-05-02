@@ -19,6 +19,13 @@ class Equipe(models.Model):
         blank=True
     )
 
+    categorias = models.ManyToManyField(
+        "core.Categoria",
+        related_name="equipes",
+        blank=True
+    )
+
+
     professores = models.ManyToManyField(
         "core.Professor",
         related_name="equipes",

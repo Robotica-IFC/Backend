@@ -13,4 +13,4 @@ class InstituicaoListRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Instituicao
         fields = "__all__"
-        depth = 1
+        depth = 2

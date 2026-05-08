@@ -157,6 +157,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=180),  # Tokens de acesso expiram em 3 horas
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Tokens de atualização expiram em 1 dia
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'TOKEN_OBTAIN_PAIR_SERIALIZER': 'core.serializers.user.MyTokenObtainPairSerializer',
 }
 
 # Exibe as configurações principais para verificação

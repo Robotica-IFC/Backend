@@ -53,6 +53,8 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Aluno)
+admin.site.register(models.Categoria)
 admin.site.register(models.Professor)
+admin.site.register(models.Equipe)
 admin.site.register(models.Estado)
 admin.site.register(models.Instituicao)

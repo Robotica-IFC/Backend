@@ -4,4 +4,5 @@ from .estado import EstadoSerializer
 from .equipe import EquipeSerializer
 from .instituicao import InstituicaoSerializer, InstituicaoListRetrieveSerializer
 from .professor import ProfessorSerializer, ProfessorListSerializer, ProfessorRetrieveSerializer
+from .projeto import ProjetoSerializer, ProjetoListRetrieveSerializer
 from .user import UserRegistrationSerializer, UserSerializer

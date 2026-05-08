@@ -1,4 +1,5 @@
 import uuid
+
 from django.db import models
 
 from uploader.models import Image
@@ -24,7 +25,6 @@ class Equipe(models.Model):
         related_name="equipes",
         blank=True
     )
-
 
     professores = models.ManyToManyField(
         "core.Professor",

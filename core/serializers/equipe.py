@@ -8,10 +8,20 @@ class ImageSerializer(ModelSerializer):
         model = Image
         fields = ['attachment_key', 'file']
 
+
 class EquipeSerializer(ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)
 
     class Meta:
         model = Equipe
         fields = '__all__'
-        depth = 1   
+
+
+class EquipeListRetrieveSerializer(ModelSerializer):
+    image_perfil = ImageSerializer(read_only=True)
+
+    class Meta:
+        model = Equipe
+        fields = '__all__'
+        depth = 2
+

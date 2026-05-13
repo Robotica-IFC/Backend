@@ -35,6 +35,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         if hasattr(user, 'aluno_profile'):
             aluno = user.aluno_profile
             token['tipo'] = 'aluno'
+            token['aluno_id'] = str(aluno.id)
             token['cpf'] = aluno.cpf
             token['telefone'] = aluno.telefone
             token['descricao'] = aluno.descricao
@@ -43,6 +44,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         elif hasattr(user, 'professor_profile'):
             professor = user.professor_profile
             token['tipo'] = 'professor'
+            token['professor_id'] = str(professor.id)
             token['cpf'] = professor.cpf
             token['telefone'] = professor.telefone
             token['descricao'] = professor.descricao

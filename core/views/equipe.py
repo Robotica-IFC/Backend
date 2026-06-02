@@ -1,8 +1,9 @@
 from rest_framework import mixins, viewsets
 
 from core.models import Equipe
-from core.serializers import EquipeSerializer
 from core.pagination import EquipePagination
+from core.serializers import EquipeListRetrieveSerializer, EquipeSerializer
+
 
 class EquipeViewSet(
     mixins.CreateModelMixin,
@@ -13,6 +14,13 @@ class EquipeViewSet(
     queryset = Equipe.objects.all()
     serializer_class = EquipeSerializer
     pagination_class = EquipePagination
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return EquipeListRetrieveSerializer
+        elif self.action == 'retrieve':
+            return EquipeListRetrieveSerializer
+        return EquipeSerializer
 
     def perform_create(self, serializer):
         equipe = serializer.save()

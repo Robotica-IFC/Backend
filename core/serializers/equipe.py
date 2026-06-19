@@ -1,6 +1,7 @@
 from rest_framework.serializers import ModelSerializer, SlugRelatedField
-from uploader.models import Image
+
 from core.models import Equipe
+from uploader.models import Image
 
 
 class ImageSerializer(ModelSerializer):
@@ -25,3 +26,10 @@ class EquipeListRetrieveSerializer(ModelSerializer):
         fields = '__all__'
         depth = 2
 
+
+class EquipeCardSerializer(ModelSerializer):
+    image_perfil = ImageSerializer(read_only=True)
+
+    class Meta:
+        model = Equipe
+        fields = ['id', 'nome', 'image_perfil']

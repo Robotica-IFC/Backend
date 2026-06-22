@@ -6,6 +6,12 @@ from core.models import Professor, User
 from uploader.models import Image
 
 
+class UserProfileSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'name', 'username', 'is_active', 'is_staff', 'last_login']
+
+
 class ProfessorSerializer(ModelSerializer):
     name = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
@@ -47,14 +53,26 @@ class ProfessorSerializer(ModelSerializer):
 
 
 class ProfessorListSerializer(ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+
     class Meta:
         model = Professor
-        fields = '__all__'
+        fields = [
+            "id", "user", "cpf", "telefone", "data_nascimento", 
+            "imagem_perfil", "instituicao", "ativo", 
+            "email_verificado", "is_professor", "descricao"
+        ]
         depth = 2
 
 
 class ProfessorRetrieveSerializer(ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+
     class Meta:
         model = Professor
-        fields = '__all__'
+        fields = [
+            "id", "user", "cpf", "telefone", "data_nascimento", 
+            "imagem_perfil", "instituicao", "ativo", 
+            "email_verificado", "is_professor", "descricao"
+        ]
         depth = 2

@@ -33,3 +33,4 @@ class EquipeCardSerializer(ModelSerializer):
     class Meta:
         model = Equipe
         fields = ['id', 'nome', 'image_perfil']
+

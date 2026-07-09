@@ -1,9 +1,14 @@
-# from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SlugRelatedField
 
 from core.models import Aluno, User
 from uploader.models import Image
+
+
+class UserProfileSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'name', 'username', 'is_active', 'is_staff', 'last_login']
 
 
 class AlunoSerializer(ModelSerializer):
@@ -46,14 +51,26 @@ class AlunoSerializer(ModelSerializer):
 
 
 class AlunoListSerializer(ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+
     class Meta:
         model = Aluno
-        fields = '__all__'
+        fields = [
+            "id", "user", "descricao", "cpf", "telefone", 
+            "data_nascimento", "imagem_perfil", "ativo", 
+            "email_verificado", "is_aluno"
+        ]
         depth = 1
 
 
 class AlunoRetrieveSerializer(ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+
     class Meta:
         model = Aluno
-        fields = '__all__'
+        fields = [
+            "id", "user", "descricao", "cpf", "telefone", 
+            "data_nascimento", "imagem_perfil", "ativo", 
+            "email_verificado", "is_aluno"
+        ]
         depth = 1

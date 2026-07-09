@@ -23,9 +23,11 @@ from core.views import (
     InstituicaoViewSet,
     MyTokenObtainPairView,
     ProfessorViewSet,
+    ProjetoViewSet,
     UserRegistrationView,
     UserViewSet,
 )
+
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
@@ -37,6 +39,7 @@ router.register(r'estados', EstadoViewSet, basename='estados')
 router.register(r'instituicoes', InstituicaoViewSet, basename='instituicoes')
 router.register(r'usuarios', UserViewSet, basename='usuarios')
 router.register(r'professores', ProfessorViewSet, basename='professores')
+router.register(r'projetos', ProjetoViewSet, basename='projetos')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

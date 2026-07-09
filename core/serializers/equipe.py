@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, SlugRelatedField
+from rest_framework.serializers import ModelSerializer, SlugRelatedField, SerializerMethodField
 
 from core.models import Equipe
 from uploader.models import Image
@@ -20,12 +20,15 @@ class EquipeSerializer(ModelSerializer):
 
 class EquipeListRetrieveSerializer(ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)
+    total_projetos = SerializerMethodField()
+
+    def get_total_projetos(self, obj):
+        return obj.projetos.count()
 
     class Meta:
         model = Equipe
         fields = '__all__'
         depth = 2
-
 
 class EquipeCardSerializer(ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)

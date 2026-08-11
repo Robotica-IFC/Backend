@@ -20,10 +20,3 @@ class ConviteViewSet(ModelViewSet):
         if self.action == 'create':
             return ConviteCreateSerializer
         return ConviteSerializer
-
-    def perform_create(self, serializer):
-        try:
-            professor = Professor.objects.get(usuario=self.request.user) # Ou user=self.request.user
-            serializer.save(convidante=professor)
-        except Professor.DoesNotExist:
-            raise ValidationError({'convidante': 'O usuário autenticado não possui um perfil de Professor associado.'})

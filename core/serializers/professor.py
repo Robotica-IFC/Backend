@@ -33,7 +33,7 @@ class ProfessorSerializer(ModelSerializer):
             "instituicao", "ativo", "email_verificado", "is_professor",
             "user", "descricao"
         )
-        read_only_fields = ("user",)
+        read_only_fields = ["user"]
 
     def create(self, validated_data):
         name = validated_data.pop("name")

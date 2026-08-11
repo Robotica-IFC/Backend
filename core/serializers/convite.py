@@ -1,6 +1,6 @@
 from pyexpat import model
 
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, CurrentUserDefault, HiddenField
 from rest_framework import serializers
 
 from core.models import Convite
@@ -15,9 +15,28 @@ class ConviteSerializer(ModelSerializer):
 class ConviteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Convite
-        fields = ('id', 'equipe', 'aluno', 'professor', 'convidante', 'status')
-        # convidante e status devem ser gerenciados pelo sistema, não informados no JSON de envio
-        read_only_fields = ('status', 'convidante')
+        fields = ("id", "equipe", "aluno", "professor", "convidante", "status")
+        read_only_fields = ("status", "convidante")
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+
+        # Tenta pegar pelo related_name customizado
+        try:
+            professor_instance = user.professor_profile
+        except AttributeError:
+            # Caso o atributo não exista ou o user não tenha perfil de professor criado
+            raise serializers.ValidationError(
+                {
+                    "convidante": (
+                        f"O usuário {user.email} não possui um perfil de"
+                        " Professor cadastrado."
+                    )
+                }
+            )
+
+        validated_data["convidante"] = professor_instance
+        return super().create(validated_data)
 
     def validate(self, attrs):
         aluno = attrs.get('aluno')
@@ -40,4 +59,4 @@ class ConviteListRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Convite
         fields = '__all__'
-        depth = 3
+        depth = 1

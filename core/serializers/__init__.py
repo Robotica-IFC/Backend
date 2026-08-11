@@ -1,5 +1,6 @@
 from .aluno import AlunoSerializer, AlunoListSerializer, AlunoRetrieveSerializer
 from .categoria import CategoriaSerializer
+from .convite import ConviteCreateSerializer, ConviteListRetrieveSerializer, ConviteSerializer
 from .estado import EstadoSerializer
 from .equipe import EquipeSerializer, EquipeListRetrieveSerializer, EquipeCardSerializer
 from .instituicao import InstituicaoSerializer, InstituicaoListRetrieveSerializer

@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, CharField
 
 from core.models import Projeto
 from core.views import instituicao
@@ -17,7 +17,6 @@ class ProjetoSerializer(ModelSerializer):
         model = Projeto
         fields = '__all__'
 
-from rest_framework.serializers import ModelSerializer, CharField
 
 class ProjetoListSerializer(ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)
@@ -36,9 +35,11 @@ class ProjetoListSerializer(ModelSerializer):
             "status",
         )
 
+
 class ProjetoRetrieveSerializer(ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)
 
     class Meta:
         model = Projeto
         fields = '__all__'
+        depth = 3

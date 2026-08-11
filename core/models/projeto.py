@@ -4,6 +4,7 @@ from uploader.models import Image
 
 from .equipe import Equipe
 
+
 class Projeto(models.Model):
     class Status(models.TextChoices):
         EM_ANDAMENTO = "EM_ANDAMENTO", "Em andamento"
@@ -38,7 +39,7 @@ class Projeto(models.Model):
 
     def __str__(self):
         return f'{self.titulo} - {self.equipe} - {self.get_status_display()}'
-    
+
     class Meta:
         verbose_name= "projeto"
         verbose_name_plural = "projetos"

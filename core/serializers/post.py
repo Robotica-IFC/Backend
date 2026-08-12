@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.db import transaction
 from rest_framework import serializers
 
@@ -105,22 +104,3 @@ class PostListRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = "__all__"
-=======
-from rest_framework import serializers
-
-from core.models import Post, PostImage
-
-
-class PostImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PostImage
-        fields = ('id', 'image')
-
-
-class PostSerializer(serializers.ModelSerializer):
-    images = PostImageSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Post
-        fields = ('id', 'legenda', 'images')
->>>>>>> 00995e4759522ff1301f360a2355abcaa881ec19

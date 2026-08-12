@@ -1,8 +1,7 @@
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from core.models import Convite, Professor
+from core.models import Convite
 from core.serializers import (
     ConviteCreateSerializer,
     ConviteListRetrieveSerializer,

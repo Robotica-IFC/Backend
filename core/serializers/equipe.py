@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, SlugRelatedField, SerializerMethodField
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from core.models import Equipe
 from uploader.models import Image
@@ -30,10 +30,10 @@ class EquipeListRetrieveSerializer(ModelSerializer):
         fields = '__all__'
         depth = 2
 
+
 class EquipeCardSerializer(ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)
 
     class Meta:
         model = Equipe
         fields = ['id', 'nome', 'image_perfil']
-

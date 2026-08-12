@@ -7,4 +7,5 @@ from .equipe import EquipeViewSet
 from .instituicao import InstituicaoViewSet
 from .professor import ProfessorViewSet
 from .projeto import ProjetoViewSet
+from .post import PostViewSet
 from .user import UserRegistrationView, UserViewSet

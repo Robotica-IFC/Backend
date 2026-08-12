@@ -26,7 +26,6 @@ class Equipe(models.Model):
         blank=True
     )
 
-
     professores = models.ManyToManyField(
         "core.Professor",
         related_name="equipes",

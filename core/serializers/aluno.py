@@ -56,8 +56,8 @@ class AlunoListSerializer(ModelSerializer):
     class Meta:
         model = Aluno
         fields = [
-            "id", "user", "descricao", "cpf", "telefone", 
-            "data_nascimento", "imagem_perfil", "ativo", 
+            "id", "user", "descricao", "cpf", "telefone",
+            "data_nascimento", "imagem_perfil", "ativo",
             "email_verificado", "is_aluno"
         ]
         depth = 1
@@ -69,8 +69,8 @@ class AlunoRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Aluno
         fields = [
-            "id", "user", "descricao", "cpf", "telefone", 
-            "data_nascimento", "imagem_perfil", "ativo", 
+            "id", "user", "descricao", "cpf", "telefone",
+            "data_nascimento", "imagem_perfil", "ativo",
             "email_verificado", "is_aluno"
         ]
         depth = 1

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from rest_framework.serializers import CharField, ModelSerializer
+=======
+from rest_framework.serializers import ModelSerializer, CharField
+>>>>>>> 00995e4759522ff1301f360a2355abcaa881ec19
 
 from core.models import Projeto
 from core.serializers.post import PostListRetrieveSerializer
@@ -44,6 +48,7 @@ class ProjetoRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Projeto
         fields = '__all__'
+<<<<<<< HEAD
         depth = 3
 
 
@@ -56,3 +61,6 @@ class ProjetoDetailWithPostsSerializer(ModelSerializer):
     class Meta:
         model = Projeto
         fields = '__all__'
+=======
+        depth = 3
+>>>>>>> 00995e4759522ff1301f360a2355abcaa881ec19

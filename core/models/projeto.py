@@ -41,5 +41,9 @@ class Projeto(models.Model):
         return f'{self.titulo} - {self.equipe} - {self.get_status_display()}'
 
     class Meta:
+<<<<<<< HEAD
         verbose_name = "projeto"
+=======
+        verbose_name= "projeto"
+>>>>>>> 00995e4759522ff1301f360a2355abcaa881ec19
         verbose_name_plural = "projetos"

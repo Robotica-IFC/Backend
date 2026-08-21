@@ -1,4 +1,3 @@
-from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SlugRelatedField
 
@@ -33,7 +32,7 @@ class ProfessorSerializer(ModelSerializer):
             "instituicao", "ativo", "email_verificado", "is_professor",
             "user", "descricao"
         )
-        read_only_fields = ("user",)
+        read_only_fields = ["user"]
 
     def create(self, validated_data):
         name = validated_data.pop("name")
@@ -58,8 +57,8 @@ class ProfessorListSerializer(ModelSerializer):
     class Meta:
         model = Professor
         fields = [
-            "id", "user", "cpf", "telefone", "data_nascimento", 
-            "imagem_perfil", "instituicao", "ativo", 
+            "id", "user", "cpf", "telefone", "data_nascimento",
+            "imagem_perfil", "instituicao", "ativo",
             "email_verificado", "is_professor", "descricao"
         ]
         depth = 2
@@ -71,8 +70,8 @@ class ProfessorRetrieveSerializer(ModelSerializer):
     class Meta:
         model = Professor
         fields = [
-            "id", "user", "cpf", "telefone", "data_nascimento", 
-            "imagem_perfil", "instituicao", "ativo", 
+            "id", "user", "cpf", "telefone", "data_nascimento",
+            "imagem_perfil", "instituicao", "ativo",
             "email_verificado", "is_professor", "descricao"
         ]
         depth = 2

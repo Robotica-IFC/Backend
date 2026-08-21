@@ -1,8 +1,10 @@
 from .aluno import AlunoSerializer, AlunoListSerializer, AlunoRetrieveSerializer
 from .categoria import CategoriaSerializer
+from .convite import ConviteCreateSerializer, ConviteListRetrieveSerializer, ConviteSerializer
 from .estado import EstadoSerializer
 from .equipe import EquipeSerializer, EquipeListRetrieveSerializer, EquipeCardSerializer
 from .instituicao import InstituicaoSerializer, InstituicaoListRetrieveSerializer
 from .professor import ProfessorSerializer, ProfessorListSerializer, ProfessorRetrieveSerializer
-from .projeto import ProjetoSerializer, ProjetoListSerializer, ProjetoRetrieveSerializer
+from .projeto import ProjetoSerializer, ProjetoListSerializer, ProjetoRetrieveSerializer, ProjetoDetailWithPostsSerializer
+from .post import PostCreateSerializer, PostListRetrieveSerializer
 from .user import UserRegistrationSerializer, UserSerializer

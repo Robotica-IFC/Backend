@@ -1,10 +1,8 @@
-from email.mime import base
 
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from core.views.equipe import EquipeViewSet
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -19,25 +17,29 @@ from rest_framework_simplejwt.views import (
 from core.views import (
     AlunoViewSet,
     CategoriaViewSet,
+    ConviteViewSet,
     EstadoViewSet,
     InstituicaoViewSet,
     MyTokenObtainPairView,
+    PostViewSet,
     ProfessorViewSet,
     ProjetoViewSet,
     UserRegistrationView,
     UserViewSet,
 )
-
+from core.views.equipe import EquipeViewSet
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
 
 router.register(r'alunos', AlunoViewSet, basename='alunos')
 router.register(r'categorias', CategoriaViewSet, basename='categorias')
+router.register(r'convites', ConviteViewSet, basename='convites')
 router.register(r'equipes', EquipeViewSet, basename='equipes')
 router.register(r'estados', EstadoViewSet, basename='estados')
 router.register(r'instituicoes', InstituicaoViewSet, basename='instituicoes')
 router.register(r'usuarios', UserViewSet, basename='usuarios')
+router.register(r'posts', PostViewSet, basename='posts')
 router.register(r'professores', ProfessorViewSet, basename='professores')
 router.register(r'projetos', ProjetoViewSet, basename='projetos')
 

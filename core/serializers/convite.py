@@ -1,7 +1,6 @@
-from pyexpat import model
 
-from rest_framework.serializers import ModelSerializer, CurrentUserDefault, HiddenField
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
 from core.models import Convite
 

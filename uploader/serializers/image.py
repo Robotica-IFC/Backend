@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from uploader.helpers.files import CONTENT_TYPE_JPG, CONTENT_TYPE_PNG
+from uploader.helpers.files import (
+    CONTENT_TYPE_GIF,
+    CONTENT_TYPE_ICO,
+    CONTENT_TYPE_JPG,
+    CONTENT_TYPE_PNG,
+    CONTENT_TYPE_WEBP,
+)
 from uploader.models import Image
 
 
@@ -12,7 +18,7 @@ class ImageUploadSerializer(serializers.ModelSerializer):
         extra_kwargs = {"file": {"write_only": True}}
 
     def validate_file(self, value):
-        valid_content_types = [CONTENT_TYPE_JPG, CONTENT_TYPE_PNG]
+        valid_content_types = [CONTENT_TYPE_JPG, CONTENT_TYPE_PNG, CONTENT_TYPE_WEBP, CONTENT_TYPE_GIF, CONTENT_TYPE_ICO]
         if value.content_type not in valid_content_types:
             raise serializers.ValidationError("Invalid or corrupted image.")
         return value

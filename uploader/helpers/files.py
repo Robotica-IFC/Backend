@@ -3,6 +3,9 @@ import magic
 CONTENT_TYPE_ICO = "image/x-icon"
 CONTENT_TYPE_JPG = "image/jpeg"
 CONTENT_TYPE_PNG = "image/png"
+CONTENT_TYPE_WEBP = "image/webp"
+CONTENT_TYPE_GIF = "image/gif"
+
 
 CONTENT_TYPE_PDF = "application/pdf"
 

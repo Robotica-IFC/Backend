@@ -1,8 +1,8 @@
 [project]
 name = "livraria"
 version = "1.0.0"
-description = "Uma API REST de uma livraria feita com Django e Django REST Framework."
-authors = [{ name = "Marco André Mendes", email = "marcoandre@gmail.com" }]
+description = "API REST com Django e Django REST Framework do projeto RoboticaIFC"
+authors = [{ name = "Lucas Fontini", email = "lucasfontinidaluz@gmail.com" }]
 dependencies = [
   'dj-database-url>=2.1.0',
   'django-cloudinary-storage>=0.3.0',

@@ -3,6 +3,7 @@ from .categoria import Categoria
 from .convite import Convite
 from .equipe import Equipe
 from .estado import Estado
+from .estoque import Estoque, Item
 from .instituicao import Instituicao
 from .professor import Professor
 from .projeto import Projeto

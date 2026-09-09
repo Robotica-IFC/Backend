@@ -2,6 +2,7 @@ from .aluno import AlunoSerializer, AlunoListSerializer, AlunoRetrieveSerializer
 from .categoria import CategoriaSerializer
 from .convite import ConviteCreateSerializer, ConviteListRetrieveSerializer, ConviteSerializer
 from .estado import EstadoSerializer
+from .estoque import EstoqueSerializer, ItemSerializer
 from .equipe import EquipeSerializer, EquipeListRetrieveSerializer, EquipeCardSerializer
 from .instituicao import InstituicaoSerializer, InstituicaoListRetrieveSerializer
 from .professor import ProfessorSerializer, ProfessorListSerializer, ProfessorRetrieveSerializer

@@ -35,7 +35,8 @@ class Equipe(models.Model):
     alunos = models.ManyToManyField(
         "core.Aluno",
         related_name="equipes",
-        blank=True
+        blank=True,
+        null=True
     )
 
     instituicao = models.ForeignKey(

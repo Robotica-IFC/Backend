@@ -19,7 +19,9 @@ from core.views import (
     CategoriaViewSet,
     ConviteViewSet,
     EstadoViewSet,
+    EstoqueViewSet,
     InstituicaoViewSet,
+    ItemViewSet,
     MyTokenObtainPairView,
     PostViewSet,
     ProfessorViewSet,
@@ -37,7 +39,9 @@ router.register(r'categorias', CategoriaViewSet, basename='categorias')
 router.register(r'convites', ConviteViewSet, basename='convites')
 router.register(r'equipes', EquipeViewSet, basename='equipes')
 router.register(r'estados', EstadoViewSet, basename='estados')
+router.register(r'estoques', EstoqueViewSet, basename='estoques')
 router.register(r'instituicoes', InstituicaoViewSet, basename='instituicoes')
+router.register(r'itens', ItemViewSet, basename='itens')
 router.register(r'usuarios', UserViewSet, basename='usuarios')
 router.register(r'posts', PostViewSet, basename='posts')
 router.register(r'professores', ProfessorViewSet, basename='professores')

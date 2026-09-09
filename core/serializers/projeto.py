@@ -31,7 +31,6 @@ class AlunoSimpleSerializer(ModelSerializer):
 
 
 class ProjetoSerializer(ModelSerializer):
-    image_perfil = ImageSerializer(read_only=True)
 
     class Meta:
         model = Projeto

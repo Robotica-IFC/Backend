@@ -11,6 +11,7 @@ class Equipe(models.Model):
     nome = models.CharField(max_length=50)
     descricao = models.CharField(max_length=1000, blank=True, null=True)
     ativo = models.BooleanField(default=True)
+    views = models.IntegerField(default=0)
 
     image_perfil = models.ForeignKey(
         Image,

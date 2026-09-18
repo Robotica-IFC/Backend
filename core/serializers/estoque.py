@@ -19,6 +19,7 @@ class ItemSerializer(serializers.ModelSerializer):
 
 class EstoqueSerializer(serializers.ModelSerializer):
     itens = ItemSerializer(many=True, read_only=True)
+    equipe = serializers.PrimaryKeyRelatedField(queryset=Equipe.objects.all())
 
     class Meta:
         model = Estoque

@@ -11,7 +11,7 @@ class Projeto(models.Model):
         CONCLUIDO = "CONCLUIDO", "Concluído"
         CANCELADO = "CANCELADO", "Cancelado"
 
-    titulo = models.CharField(max_length=20)
+    titulo = models.CharField(max_length=30)
     desc_curta = models.CharField(max_length=60)
     descricao = models.TextField()
     data_criacao = models.DateField(auto_now_add=True)

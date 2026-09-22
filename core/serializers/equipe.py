@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, SerializerMethodField, SlugRelatedField
+from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField, SerializerMethodField, SlugRelatedField
 
 from core.models import Equipe
 from uploader.models import Image
@@ -32,6 +32,7 @@ class EquipeSerializer(ModelSerializer):
 
 
 class EquipeListRetrieveSerializer(ModelSerializer):
+    estoque_id = PrimaryKeyRelatedField(source='estoque', read_only=True)
     image_perfil = ImageSerializer(read_only=True)
     total_projetos = SerializerMethodField()
 

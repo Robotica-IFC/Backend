@@ -19,6 +19,19 @@ class Estoque(models.Model):
 
 
 class Item(models.Model):
+    class CategoriaItem(models.TextChoices):
+        SENSORES = 'SENSORES', 'Sensores'
+        ATUADORES = 'ATUADORES', 'Atuadores e Motores'
+        MICROCONTROLADORES = 'MICROCONTROLADORES', 'Microcontroladores e Placas'
+        ELETRONICA = 'ELETRONICA', 'Componentes Eletrônicos'
+        ESTRUTURA = 'ESTRUTURA', 'Peças Estruturais e Chassi'
+        ALIMENTACAO = 'ALIMENTACAO', 'Baterias e Alimentação'
+        FERRAMENTAS = 'FERRAMENTAS', 'Ferramentas e Equipamentos'
+        CABEAMENTO = 'CABEAMENTO', 'Cabos e Conectores'
+        FIXACAO = 'FIXACAO', 'Parafusos e Fixadores'
+        IMPRESSAO_3D = 'IMPRESSAO_3D', 'Filamentos e Peças 3D'
+        OUTROS = 'OUTROS', 'Outros'
+
     estoque = models.ForeignKey(
         Estoque,
         on_delete=models.CASCADE,
@@ -36,6 +49,11 @@ class Item(models.Model):
         blank=True,
         related_name='itens'
     )
+    categoria = models.CharField(
+        max_length=30,
+        choices=CategoriaItem.choices,
+        default=CategoriaItem.OUTROS,
+    )
 
     def __str__(self):
-        return f'{self.nome} - {self.quantidade}'
+        return f'{self.nome} ({self.get_categoria_display()}) - {self.quantidade}'

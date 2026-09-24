@@ -1,7 +1,6 @@
 from .aluno import AlunoViewSet
 from .auth import MyTokenObtainPairView
 from .categoria import CategoriaViewSet
-from .convite import ConviteViewSet
 from .estado import EstadoViewSet
 from .estoque import EstoqueViewSet, ItemViewSet
 from .equipe import EquipeViewSet

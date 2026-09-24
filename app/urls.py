@@ -1,7 +1,14 @@
-
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from core.views.convite import (
+    enviar_convite,
+    listar_meus_convites,
+    iniciar_aceitacao_convite,
+    confirmar_convite,
+    recusar_convite,
+)
+from django.urls import path
 from django.urls import include, path
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -17,7 +24,6 @@ from rest_framework_simplejwt.views import (
 from core.views import (
     AlunoViewSet,
     CategoriaViewSet,
-    ConviteViewSet,
     EstadoViewSet,
     EstoqueViewSet,
     InstituicaoViewSet,
@@ -36,7 +42,6 @@ router = DefaultRouter()
 
 router.register(r'alunos', AlunoViewSet, basename='alunos')
 router.register(r'categorias', CategoriaViewSet, basename='categorias')
-router.register(r'convites', ConviteViewSet, basename='convites')
 router.register(r'equipes', EquipeViewSet, basename='equipes')
 router.register(r'estados', EstadoViewSet, basename='estados')
 router.register(r'estoques', EstoqueViewSet, basename='estoques')
@@ -47,27 +52,100 @@ router.register(r'posts', PostViewSet, basename='posts')
 router.register(r'professores', ProfessorViewSet, basename='professores')
 router.register(r'projetos', ProjetoViewSet, basename='projetos')
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     # OpenAPI 3
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path(
+        'api/schema/',
+        SpectacularAPIView.as_view(),
+        name='schema',
+    ),
+
     path(
         'api/doc/',
         SpectacularSwaggerView.as_view(url_name='schema'),
         name='swagger-ui',
     ),
-    path('api/media/', include(uploader_router.urls)),
+
     path(
         'api/redoc/',
         SpectacularRedocView.as_view(url_name='schema'),
         name='redoc',
     ),
+
+    # Uploads
+    path(
+        'api/media/',
+        include(uploader_router.urls),
+    ),
+
     # Autenticação JWT
-path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'), path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path(
+        'api/token/',
+        MyTokenObtainPairView.as_view(),
+        name='token_obtain_pair',
+    ),
+
+    path(
+        'api/token/refresh/',
+        TokenRefreshView.as_view(),
+        name='token_refresh',
+    ),
+
+    path(
+        'api/token/verify/',
+        TokenVerifyView.as_view(),
+        name='token_verify',
+    ),
+
     # Registro de usuários
-    path('api/registro/', UserRegistrationView.as_view(), name='user_registration'),
+    path(
+        'api/registro/',
+        UserRegistrationView.as_view(),
+        name='user_registration',
+    ),
+
+    # Rotas específicas de convites
+    path(
+        'equipes/<int:equipe_id>/convites/',
+        enviar_convite,
+        name='enviar-convite',
+    ),
+
+    path(
+        'convites/',
+        listar_meus_convites,
+        name='listar-meus-convites',
+    ),
+
+    path(
+        'convites/<int:convite_id>/aceitar/',
+        iniciar_aceitacao_convite,
+        name='iniciar-aceitacao-convite',
+    ),
+
+    path(
+        'convites/<int:convite_id>/confirmar/',
+        confirmar_convite,
+        name='confirmar-convite',
+    ),
+
+    path(
+        'convites/<int:convite_id>/recusar/',
+        recusar_convite,
+        name='recusar-convite',
+    ),
+
     # API
-    path('api/', include(router.urls)),
+    path(
+        'api/',
+        include(router.urls),
+    ),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += static(
+    settings.MEDIA_URL,
+    document_root=settings.MEDIA_ROOT,
+)

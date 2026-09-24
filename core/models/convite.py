@@ -1,64 +1,77 @@
-from django.core.exceptions import ValidationError
+import secrets
+from django.conf import settings
+from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
+from django.utils import timezone
+
+maximo_convites_equipe = 5
+tempo_expiracao_codigo = 15
+maximo_tentativas = 5
 
 
 class Convite(models.Model):
-    class StatusChoices(models.TextChoices):
-        PENDENTE = 'P', 'Pendente'
-        ACEITO = 'A', 'Aceito'
-        NEGADO = 'N', 'Negado'
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pendente"
+        AWAITING_CONFIRMATION = "awaiting_confirmation", "Aguardando confirmação"
+        ACCEPTED = "accepted", "Aceito"
+        DECLINED = "declined", "Recusado"
 
-    convidante = models.ForeignKey(
-        'core.Professor',
-        related_name='convites_enviados',
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-    )
-
-    professor = models.ForeignKey(
-        'core.Professor',
-        related_name='convites_recebidos_professor',
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
+    equipe = models.ForeignKey(
+        "core.Equipe", on_delete=models.CASCADE, related_name="convites"
     )
 
     aluno = models.ForeignKey(
-        'core.Aluno',
-        related_name='convites_recebidos_aluno',
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="convite_recebido",
     )
 
-    equipe = models.ForeignKey(
-        'core.Equipe',
-        related_name='convites',
-        on_delete=models.PROTECT,
-    )
+    enviadosPor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="convites_enviados")
 
-    status = models.CharField(
-        max_length=1,
-        choices=StatusChoices.choices,
-        default=StatusChoices.PENDENTE,
-    )
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.PENDING)
 
-    def clean(self):
-        super().clean()
+    codigoConfirmacao = models.CharField(max_length= 128, null=True, blank=True)
+    codigoExpiracao= models.DateTimeField(null=True, blank=True)
+    tentativas = models.PositiveSmallIntegerField(default=0)
+    criacao = models.DateTimeField(auto_now_add=True)
+    resposta = models.DateTimeField(null=True, blank=True)
 
-        # Garante que existe uma equipe
-        if not self.equipe:
-            raise ValidationError({'equipe': 'O convite precisa estar associado a uma equipe.'})
+    class Meta: 
+        constraints = [
+            models.UniqueConstraint(
+                fields = ["equipe", "aluno"],
+                condition = models.Q(status__in=["pending", "awaiting_confirmation"]), name = "conviteUnicoPorAluno"
+            )
+        ]
 
-        # Garante que o destino é apenas UM (aluno OU professor)
-        if bool(self.aluno) == bool(self.professor):
-            raise ValidationError('O convite deve ser direcionado para um Aluno ou para um Professor, não ambos.')
+    def is_active(self):
+        return self.status in (self.Status.PENDING, self.Status.AWAITING_CONFIRMATION)
 
-        # Garante que o convidante não tente convidar a si mesmo (se for um professor convidando outro professor)
-        if self.convidante and self.professor and self.convidante == self.professor:
-            raise ValidationError({'professor': 'Você não pode enviar um convite para si mesmo.'})
+    def geradorCodigoAleatorio (self):
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        self.codigoConfirmacao = make_password(code)
+        self.codigoExpiracao = timezone.now() + timezone.timedelta( minutes= tempo_expiracao_codigo )
+        self.tentativas = 0
+        self.status = self.Status.AWAITING_CONFIRMATION
+        self.save(update_fields=[
+            "codigoConfirmacao", "codigoExpiracao", "tentativas", "status"
+        ])
 
-    def __str__(self):
-        destino = self.aluno or self.professor
-        return f'Convite de {self.convidante} para {destino} ({self.get_status_display()})'
+        return code
+
+    def checarConfirmacao(self, code):
+        if self.status != self.Status.AWAITING_CONFIRMATION:
+            return False, "Convite não está aguardando confirmação."
+        if self.codigoExpiracao and timezone.now() > self.codigoExpiracao:
+            return False, "Código expirado. Solicite um novo."
+        if self.tentativas >= maximo_tentativas:
+            return False, "Número máximo de tentativas excedido."
+
+        self.tentativas += 1
+        self.save(update_fields=["tentativas"])
+
+        if not check_password(code, self.codigoConfirmacao):
+            return False, "Código incorreto"
+
+
+        return True, None
+ 

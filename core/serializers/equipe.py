@@ -1,6 +1,12 @@
-from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField, SerializerMethodField, SlugRelatedField
+from rest_framework.serializers import (
+    ModelSerializer,
+    PrimaryKeyRelatedField,
+    ReadOnlyField,
+    SerializerMethodField,
+    SlugRelatedField,
+)
 
-from core.models import Equipe
+from core.models import Categoria, Equipe, Instituicao, Professor
 from uploader.models import Image
 
 
@@ -8,6 +14,26 @@ class ImageSerializer(ModelSerializer):
     class Meta:
         model = Image
         fields = ['attachment_key', 'file', 'url']
+
+
+class ProfessorCardSerializer(ModelSerializer):
+    username = ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Professor
+        fields = ['id', 'username']
+
+
+class CategoriaCardSerializer(ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = ['id', 'nome']
+
+
+class InstituicaoCardSerializer(ModelSerializer):
+    class Meta:
+        model = Instituicao
+        fields = ['id', 'sigla']
 
 
 class EquipeSerializer(ModelSerializer):
@@ -47,7 +73,14 @@ class EquipeListRetrieveSerializer(ModelSerializer):
 
 class EquipeCardSerializer(ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)
+    professores = ProfessorCardSerializer(many=True, read_only=True)
+    categorias = CategoriaCardSerializer(many=True, read_only=True)
+    instituicao = InstituicaoCardSerializer(read_only=True)
+    total_projetos = SerializerMethodField()
+
+    def get_total_projetos(self, obj):
+        return obj.projetos.count()
 
     class Meta:
         model = Equipe
-        fields = ['id', 'nome', 'image_perfil']
+        fields = '__all__'

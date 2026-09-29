@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SlugRelatedField
 
@@ -39,15 +40,16 @@ class AlunoSerializer(ModelSerializer):
         username = validated_data.pop('username')
         password = validated_data.pop('password')
 
-        user = User.objects.create_user(
-            email=email,
-            name=name,
-            username=username,
-            password=password
-        )
+        with transaction.atomic():
+            user = User.objects.create_user(
+                email=email,
+                name=name,
+                username=username,
+                password=password
+            )
 
-        aluno = Aluno.objects.create(user=user, **validated_data)
-        return aluno
+            aluno = Aluno.objects.create(user=user, **validated_data)
+            return aluno
 
 
 class AlunoListSerializer(ModelSerializer):

@@ -8,6 +8,8 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-criado_em')
     permission_classes = [permissions.IsAuthenticated]
 
+    http_method_names = ['get', 'post', 'put', 'delete']
+
     def get_serializer_class(self):
         if self.action in {'create', 'update', 'partial_update'}:
             return PostCreateSerializer

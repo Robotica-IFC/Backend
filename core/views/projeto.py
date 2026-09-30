@@ -14,6 +14,8 @@ from core.serializers import (
 class ProjetoViewSet(ModelViewSet):
     queryset = Projeto.objects.all()
 
+    http_method_names = ['get', 'post', 'put', 'delete']
+
     def get_queryset(self):
         queryset = super().get_queryset()
 

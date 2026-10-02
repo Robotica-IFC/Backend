@@ -1,6 +1,9 @@
+from django.db import transaction
 from django.db.models import F, Q
+from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.models import Equipe
@@ -9,6 +12,7 @@ from core.serializers import (
     EquipeCardSerializer,
     EquipeListRetrieveSerializer,
     EquipeSerializer,
+    SairEquipeSerializer,
 )
 
 
@@ -74,6 +78,18 @@ class EquipeViewSet(
 
         serializer = self.get_serializer(equipes, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='sair', permission_classes=[IsAuthenticated])
+    @transaction.atomic
+    def sair(self, request, pk=None):
+        equipe = get_object_or_404(Equipe.objects.select_for_update(), pk=pk)
+        self.check_object_permissions(request, equipe)
+
+        serializer = SairEquipeSerializer(data=request.data, context={'request': request, 'equipe': equipe})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"detail": "Saída da equipe realizada com sucesso."}, status=200)
 
     def perform_create(self, serializer):
         equipe = serializer.save()

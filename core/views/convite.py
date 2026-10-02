@@ -13,6 +13,8 @@ class ConviteViewSet(ModelViewSet):
     queryset = Convite.objects.all()
     permission_classes = [IsAuthenticated]
 
+    http_method_names = ['get', 'post', 'put']
+
     def get_serializer_class(self):
         if self.action in {'list', 'retrieve'}:
             return ConviteListRetrieveSerializer

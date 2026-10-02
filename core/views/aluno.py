@@ -10,6 +10,8 @@ class AlunoViewSet(ModelViewSet):
     serializer_class = AlunoSerializer
     permission_classes = [AllowAny]  # permite a criação de usuarios por qualquer usuario
 
+    http_method_names = ['get', 'post', 'put', 'delete']
+
     def get_serializer_class(self):
         if self.action == 'list':
             return AlunoListSerializer

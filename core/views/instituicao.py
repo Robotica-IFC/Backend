@@ -8,6 +8,8 @@ class InstituicaoViewSet(ModelViewSet):
     queryset = Instituicao.objects.all()
     serializer_class = InstituicaoSerializer
 
+    http_method_names = ['get', 'post', 'put']
+
     def get_serializer_class(self):
        if self.action == 'list':  # noqa: E111
            return InstituicaoListRetrieveSerializer  # noqa: E111

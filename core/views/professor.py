@@ -10,6 +10,8 @@ class ProfessorViewSet(ModelViewSet):
     serializer_class = ProfessorSerializer
     permission_classes = [AllowAny]
 
+    http_method_names = ['get', 'post', 'put', 'delete']
+
     def get_serializer_class(self):
        if self.action == 'list':  # noqa: E111
            return ProfessorListSerializer  # noqa: E111

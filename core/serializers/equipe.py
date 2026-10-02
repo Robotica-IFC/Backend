@@ -2,11 +2,13 @@ from rest_framework.serializers import (
     ModelSerializer,
     PrimaryKeyRelatedField,
     ReadOnlyField,
+    Serializer,
     SerializerMethodField,
     SlugRelatedField,
+    ValidationError,
 )
 
-from core.models import Categoria, Equipe, Instituicao, Professor
+from core.models import Aluno, Categoria, Equipe, Instituicao, Professor
 from uploader.models import Image
 
 
@@ -37,19 +39,14 @@ class InstituicaoCardSerializer(ModelSerializer):
 
 
 class EquipeSerializer(ModelSerializer):
-    # Permite ESCREVER enviando apenas a string da attachment_key e LER retornando a chave
     image_perfil = SlugRelatedField(
-        slug_field='attachment_key',
-        queryset=Image.objects.all(),
-        required=False,
-        allow_null=True
+        slug_field='attachment_key', queryset=Image.objects.all(), required=False, allow_null=True
     )
 
     class Meta:
         model = Equipe
         fields = '__all__'
 
-    # Sobrescreve to_representation para RETORNAR a imagem serializada completa no GET
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if instance.image_perfil:
@@ -83,4 +80,51 @@ class EquipeCardSerializer(ModelSerializer):
 
     class Meta:
         model = Equipe
-        fields = '__all__'
+        fields = [
+            'id',
+            'nome',
+            'image_perfil',
+            'professores',
+            'categorias',
+            'instituicao',
+            'total_projetos',
+        ]
+
+
+class SairEquipeSerializer(Serializer):
+    def validate(self, attrs):
+        user = self.context['request'].user
+        equipe = self.context['equipe']
+
+        try:
+            aluno = user.aluno_profile
+        except Aluno.DoesNotExist:
+            try:
+                professor = user.professor_profile
+            except Professor.DoesNotExist:
+                raise ValidationError('Usuário não é aluno nem professor.')
+
+            if not equipe.professores.filter(pk=professor.pk).exists():
+                raise ValidationError('Professor não pertence a esta equipe.')
+
+            if not equipe.professores.exclude(pk=professor.pk).exists():
+                raise ValidationError('Professor é o único professor da equipe e não pode sair.')
+
+            attrs['professor'] = professor
+            return attrs
+
+        if not equipe.alunos.filter(pk=aluno.pk).exists():
+            raise ValidationError('Aluno não pertence a esta equipe.')
+
+        attrs['aluno'] = aluno
+        return attrs
+
+    def create(self, validated_data):
+        equipe = self.context['equipe']
+
+        if 'aluno' in validated_data:
+            equipe.alunos.remove(validated_data['aluno'])
+        elif 'professor' in validated_data:
+            equipe.professores.remove(validated_data['professor'])
+
+        return equipe

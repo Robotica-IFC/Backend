@@ -8,7 +8,6 @@ from core.views.convite import (
     confirmar_convite,
     recusar_convite,
 )
-from django.urls import path
 from django.urls import include, path
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -109,31 +108,31 @@ urlpatterns = [
 
     # Rotas específicas de convites
     path(
-        'equipes/<int:equipe_id>/convites/',
+        'api/equipes/<uuid:equipe_id>/convites/',
         enviar_convite,
         name='enviar-convite',
     ),
 
     path(
-        'convites/',
+        'api/convites/',
         listar_meus_convites,
         name='listar-meus-convites',
     ),
 
     path(
-        'convites/<int:convite_id>/aceitar/',
+        'api/convites/<int:convite_id>/aceitar/',
         iniciar_aceitacao_convite,
         name='iniciar-aceitacao-convite',
     ),
 
     path(
-        'convites/<int:convite_id>/confirmar/',
+        'api/convites/<int:convite_id>/confirmar/',
         confirmar_convite,
         name='confirmar-convite',
     ),
 
     path(
-        'convites/<int:convite_id>/recusar/',
+        'api/convites/<int:convite_id>/recusar/',
         recusar_convite,
         name='recusar-convite',
     ),

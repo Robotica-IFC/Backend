@@ -9,7 +9,7 @@ from core.serializers import EstoqueSerializer, ItemSerializer
 
 class EstoqueViewSet(ModelViewSet):
     queryset = Estoque.objects.all()
-    serializer_class = Estoque
+    serializer_class = EstoqueSerializer
     http_method_names = ['get', 'post', 'put', 'delete']
 
 

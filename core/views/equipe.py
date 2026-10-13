@@ -1,9 +1,11 @@
 from django.db import transaction
 from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from core.models import Equipe
@@ -25,6 +27,13 @@ class EquipeViewSet(
     queryset = Equipe.objects.all()
     serializer_class = EquipeSerializer
     pagination_class = EquipePagination
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['categorias__nome', 'instituicao__nome']
+    search_fields = ['nome']
+    ordering = ['-views']
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         """

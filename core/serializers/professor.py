@@ -6,10 +6,24 @@ from core.models import Professor, User
 from uploader.models import Image
 
 
+class ImageSerializer(ModelSerializer):
+    url = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Image
+        fields = ['attachment_key', 'url']
+
+
+class InstituicaoMiniSerializer(ModelSerializer):
+    class Meta:
+        model = Professor._meta.get_field('instituicao').related_model
+        fields = ['id', 'nome', 'sigla', 'cidade', 'estado']
+
+
 class UserProfileSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'username', 'is_active', 'is_staff', 'last_login']
+        fields = ['id', 'email', 'name', 'username']
 
 
 class ProfessorSerializer(ModelSerializer):
@@ -19,35 +33,38 @@ class ProfessorSerializer(ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
     imagem_perfil = SlugRelatedField(
-        queryset=Image.objects.all(),
-        slug_field='attachment_key',
-        required=False,
-        allow_null=True
+        queryset=Image.objects.all(), slug_field='attachment_key', required=False, allow_null=True
     )
 
     class Meta:
         model = Professor
         fields = (
-            "id", "name", "email", "username", "password",
-            "cpf", "telefone", "data_nascimento", "imagem_perfil",
-            "instituicao", "ativo", "email_verificado", "is_professor",
-            "user", "descricao"
+            'id',
+            'name',
+            'email',
+            'username',
+            'password',
+            'cpf',
+            'telefone',
+            'data_nascimento',
+            'imagem_perfil',
+            'instituicao',
+            'ativo',
+            'email_verificado',
+            'is_professor',
+            'user',
+            'descricao',
         )
-        read_only_fields = ["user"]
+        read_only_fields = ['user']
 
     def create(self, validated_data):
-        name = validated_data.pop("name")
-        email = validated_data.pop("email")
-        username = validated_data.pop("username")
-        password = validated_data.pop("password")
+        name = validated_data.pop('name')
+        email = validated_data.pop('email')
+        username = validated_data.pop('username')
+        password = validated_data.pop('password')
 
         with transaction.atomic():
-            user = User.objects.create_user(
-                email=email,
-                name=name,
-                username=username,
-                password=password
-            )
+            user = User.objects.create_user(email=email, name=name, username=username, password=password)
 
             professor = Professor.objects.create(user=user, **validated_data)
             return professor
@@ -55,25 +72,43 @@ class ProfessorSerializer(ModelSerializer):
 
 class ProfessorListSerializer(ModelSerializer):
     user = UserProfileSerializer(read_only=True)
+    imagem_perfil = ImageSerializer(read_only=True)
+    instituicao = InstituicaoMiniSerializer(read_only=True)
 
     class Meta:
         model = Professor
         fields = [
-            "id", "user", "cpf", "telefone", "data_nascimento",
-            "imagem_perfil", "instituicao", "ativo",
-            "email_verificado", "is_professor", "descricao"
+            'id',
+            'user',
+            'cpf',
+            'telefone',
+            'data_nascimento',
+            'imagem_perfil',
+            'instituicao',
+            'ativo',
+            'email_verificado',
+            'is_professor',
+            'descricao',
         ]
-        depth = 2
 
 
 class ProfessorRetrieveSerializer(ModelSerializer):
     user = UserProfileSerializer(read_only=True)
+    imagem_perfil = ImageSerializer(read_only=True)
+    instituicao = InstituicaoMiniSerializer(read_only=True)
 
     class Meta:
         model = Professor
         fields = [
-            "id", "user", "cpf", "telefone", "data_nascimento",
-            "imagem_perfil", "instituicao", "ativo",
-            "email_verificado", "is_professor", "descricao"
+            'id',
+            'user',
+            'cpf',
+            'telefone',
+            'data_nascimento',
+            'imagem_perfil',
+            'instituicao',
+            'ativo',
+            'email_verificado',
+            'is_professor',
+            'descricao',
         ]
-        depth = 2

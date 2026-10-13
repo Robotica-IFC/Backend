@@ -8,4 +8,4 @@ class CategoriaViewSet(ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
 
-    http_method_names = ['get', 'post', 'put']
+    http_method_names = ['get', 'post', 'put', 'patch']

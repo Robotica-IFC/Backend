@@ -6,10 +6,7 @@ from uploader.serializers import ImageSerializer
 
 class ItemSerializer(serializers.ModelSerializer):
     imagem_detail = ImageSerializer(source='imagem', read_only=True)
-    categoria_display = serializers.CharField(
-        source='get_categoria_display',
-        read_only=True
-    )
+    categoria_display = serializers.CharField(source='get_categoria_display', read_only=True)
 
     class Meta:
         model = Item
@@ -22,12 +19,9 @@ class ItemSerializer(serializers.ModelSerializer):
             'categoria_display',
             'imagem',
             'imagem_detail',
-            'estoque'
+            'estoque',
         ]
-        extra_kwargs = {
-            'imagem': {'write_only': True},
-            'estoque': {'required': True}
-        }
+        extra_kwargs = {'imagem': {'write_only': True}, 'estoque': {'required': True}}
 
 
 class InstituicaoResumidaSerializer(serializers.ModelSerializer):
@@ -52,6 +46,16 @@ class EstoqueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estoque
         fields = ['id', 'equipe', 'itens']
+
+    def validate_equipe(self, value):
+        queryset = Estoque.objects.filter(equipe=value)
+        if self.instance is not None:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
+            raise serializers.ValidationError('Já existe um estoque para esta equipe.')
+
+        return value
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

@@ -16,7 +16,7 @@ class EstoqueViewSet(ModelViewSet):
 class ItemViewSet(ModelViewSet):
     serializer_class = ItemSerializer
 
-    http_method_names = ['get', 'post', 'put', 'delete']
+    http_method_names = ['get', 'post', 'put', 'delete', 'patch']
 
     def get_queryset(self):
         queryset = Item.objects.all()

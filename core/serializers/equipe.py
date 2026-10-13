@@ -1,6 +1,5 @@
 from rest_framework.serializers import (
     ModelSerializer,
-    PrimaryKeyRelatedField,
     ReadOnlyField,
     Serializer,
     SerializerMethodField,
@@ -8,14 +7,47 @@ from rest_framework.serializers import (
     ValidationError,
 )
 
-from core.models import Aluno, Categoria, Equipe, Instituicao, Professor
+from core.models import Aluno, Categoria, Equipe, Instituicao, Professor, User
 from uploader.models import Image
 
 
 class ImageSerializer(ModelSerializer):
+    url = ReadOnlyField()
+
     class Meta:
         model = Image
-        fields = ['attachment_key', 'file', 'url']
+        fields = ['attachment_key', 'url']
+
+
+class InstituicaoCardSerializer(ModelSerializer):
+    class Meta:
+        model = Instituicao
+        fields = ['id', 'sigla', 'nome', 'cidade', 'estado']
+
+
+class UserPublicSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'name', 'username']
+
+
+class ProfessorEquipeSerializer(ModelSerializer):
+    user = UserPublicSerializer(read_only=True)
+    imagem_perfil = ImageSerializer(read_only=True)
+    instituicao = InstituicaoCardSerializer(read_only=True)
+
+    class Meta:
+        model = Professor
+        fields = ['id', 'user', 'imagem_perfil', 'instituicao']
+
+
+class AlunoEquipeSerializer(ModelSerializer):
+    user = UserPublicSerializer(read_only=True)
+    imagem_perfil = ImageSerializer(read_only=True)
+
+    class Meta:
+        model = Aluno
+        fields = ['id', 'user', 'imagem_perfil']
 
 
 class ProfessorCardSerializer(ModelSerializer):
@@ -30,12 +62,6 @@ class CategoriaCardSerializer(ModelSerializer):
     class Meta:
         model = Categoria
         fields = ['id', 'nome']
-
-
-class InstituicaoCardSerializer(ModelSerializer):
-    class Meta:
-        model = Instituicao
-        fields = ['id', 'sigla']
 
 
 class EquipeSerializer(ModelSerializer):
@@ -55,17 +81,37 @@ class EquipeSerializer(ModelSerializer):
 
 
 class EquipeListRetrieveSerializer(ModelSerializer):
-    estoque_id = PrimaryKeyRelatedField(source='estoque', read_only=True)
     image_perfil = ImageSerializer(read_only=True)
+    professores = ProfessorEquipeSerializer(many=True, read_only=True)
+    alunos = AlunoEquipeSerializer(many=True, read_only=True)
+    categorias = CategoriaCardSerializer(many=True, read_only=True)
+    instituicao = InstituicaoCardSerializer(read_only=True)
     total_projetos = SerializerMethodField()
+    estoque_id = SerializerMethodField()
 
     def get_total_projetos(self, obj):
         return obj.projetos.count()
 
+    def get_estoque_id(self, obj):
+        estoque = getattr(obj, 'estoque', None)
+        return estoque.id if estoque else None
+
     class Meta:
         model = Equipe
-        fields = '__all__'
-        depth = 2
+        fields = [
+            'id',
+            'nome',
+            'descricao',
+            'ativo',
+            'views',
+            'image_perfil',
+            'professores',
+            'alunos',
+            'categorias',
+            'instituicao',
+            'total_projetos',
+            'estoque_id',
+        ]
 
 
 class EquipeCardSerializer(ModelSerializer):

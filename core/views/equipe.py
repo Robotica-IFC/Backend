@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -13,23 +13,19 @@ from core.pagination import EquipePagination
 from core.serializers import (
     EquipeCardSerializer,
     EquipeListRetrieveSerializer,
+    EquipeOpcaoSerializer,
     EquipeSerializer,
     SairEquipeSerializer,
 )
 
 
-class EquipeViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet
-):
+class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Equipe.objects.all()
     serializer_class = EquipeSerializer
     pagination_class = EquipePagination
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['categorias__nome', 'instituicao__nome']
+    filterset_fields = ['categorias__nome', 'instituicao__nome', 'instituicao', 'ativo']
     search_fields = ['nome']
     ordering = ['-views']
 
@@ -42,8 +38,11 @@ class EquipeViewSet(
         """
         queryset = Equipe.objects.all().order_by('-views')
 
+        if self.action == 'opcoes':
+            return queryset.select_related('image_perfil')
+
         # Otimização de performance para evitar N+1 queries na listagem/detalhes
-        if self.action in ['list', 'retrieve']:
+        if self.action in {'list', 'retrieve'}:
             queryset = queryset.select_related('instituicao').prefetch_related(
                 'alunos__user',
                 'professores__user',
@@ -52,11 +51,25 @@ class EquipeViewSet(
         return queryset
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in {'list', 'retrieve'}:
             return EquipeListRetrieveSerializer
         elif self.action == 'por_usuario':
             return EquipeCardSerializer
+        elif self.action == 'opcoes':
+            return EquipeOpcaoSerializer
         return EquipeSerializer
+
+    @action(detail=False, methods=['get'], url_path='opcoes')
+    def opcoes(self, request):
+        """Lista opções de equipes com nome e imagem, aplicando filtros e paginação."""
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post', 'get'], url_path='visualizar')
     def incrementar_views(self, request, pk=None):
@@ -81,9 +94,7 @@ class EquipeViewSet(
         Busca equipes que contenham o usuário informado, seja ele Aluno ou Professor.
         Retorna apenas os dados resumidos do EquipeCardSerializer.
         """
-        equipes = self.get_queryset().filter(
-            Q(alunos__user__id=user_id) | Q(professores__user__id=user_id)
-        ).distinct()
+        equipes = self.get_queryset().filter(Q(alunos__user__id=user_id) | Q(professores__user__id=user_id)).distinct()
 
         serializer = self.get_serializer(equipes, many=True)
         return Response(serializer.data)
@@ -98,7 +109,7 @@ class EquipeViewSet(
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response({"detail": "Saída da equipe realizada com sucesso."}, status=200)
+        return Response({'detail': 'Saída da equipe realizada com sucesso.'}, status=200)
 
     def perform_create(self, serializer):
         equipe = serializer.save()
@@ -107,4 +118,4 @@ class EquipeViewSet(
 
         if primeiro_professor:
             equipe.instituicao = primeiro_professor.instituicao
-            equipe.save(update_fields=["instituicao"])
+            equipe.save(update_fields=['instituicao'])

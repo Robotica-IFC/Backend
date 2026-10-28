@@ -137,6 +137,14 @@ class EquipeCardSerializer(ModelSerializer):
         ]
 
 
+class EquipeOpcaoSerializer(ModelSerializer):
+    image_perfil = ImageSerializer(read_only=True)
+
+    class Meta:
+        model = Equipe
+        fields = ['id', 'nome', 'image_perfil']
+
+
 class SairEquipeSerializer(Serializer):
     def validate(self, attrs):
         user = self.context['request'].user

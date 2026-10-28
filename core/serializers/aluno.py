@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SlugRelatedField
 
+from core.email_verification import send_initial_code
 from core.models import Aluno, User
 from uploader.models import Image
 
@@ -48,6 +49,7 @@ class AlunoSerializer(ModelSerializer):
             'is_aluno',
             'user',
         ]
+        read_only_fields = ['user', 'email_verificado']
         depth = 1
 
     def create(self, validated_data):
@@ -60,6 +62,7 @@ class AlunoSerializer(ModelSerializer):
             user = User.objects.create_user(email=email, name=name, username=username, password=password)
 
             aluno = Aluno.objects.create(user=user, **validated_data)
+            transaction.on_commit(lambda: send_initial_code(user))
             return aluno
 
 

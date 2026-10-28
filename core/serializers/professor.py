@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, SlugRelatedField
 
+from core.email_verification import send_initial_code
 from core.models import Professor, User
 from uploader.models import Image
 
@@ -55,7 +56,7 @@ class ProfessorSerializer(ModelSerializer):
             'user',
             'descricao',
         )
-        read_only_fields = ['user']
+        read_only_fields = ['user', 'email_verificado']
 
     def create(self, validated_data):
         name = validated_data.pop('name')
@@ -67,6 +68,7 @@ class ProfessorSerializer(ModelSerializer):
             user = User.objects.create_user(email=email, name=name, username=username, password=password)
 
             professor = Professor.objects.create(user=user, **validated_data)
+            transaction.on_commit(lambda: send_initial_code(user))
             return professor
 
 

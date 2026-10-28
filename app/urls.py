@@ -27,6 +27,7 @@ from core.views import (
     PostViewSet,
     ProfessorViewSet,
     ProjetoViewSet,
+    SugestaoProjetoViewSet,
     UserRegistrationView,
     UserViewSet,
 )
@@ -46,6 +47,7 @@ router.register(r'usuarios', UserViewSet, basename='usuarios')
 router.register(r'posts', PostViewSet, basename='posts')
 router.register(r'professores', ProfessorViewSet, basename='professores')
 router.register(r'projetos', ProjetoViewSet, basename='projetos')
+router.register(r'sugestoes-projetos', SugestaoProjetoViewSet, basename='sugestoes-projetos')
 
 urlpatterns = [
     path('api/verificar-email/', EmailVerificationView.as_view()),

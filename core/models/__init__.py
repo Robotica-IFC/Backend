@@ -9,3 +9,4 @@ from .professor import Professor
 from .projeto import Projeto
 from .post import Post, PostImage
 from .user import User
+from .sugestao_projeto import SugestaoProjeto

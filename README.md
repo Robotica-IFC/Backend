@@ -58,6 +58,43 @@ O projeto também já vem com a documentação da API, gerada automaticamente pe
 
 A documentação completa dos endpoints da API e exemplos de uso estão disponíveis na [Documentação da API](http://localhost:19003/api/swagger/).
 
+## Sugestões de projeto
+
+O formulário "Sugira um projeto" envia sugestões para uma equipe cadastrada. Uma sugestão é armazenada separadamente e não cria um projeto em andamento.
+
+- Opções de equipes para o formulário: `GET /api/equipes/opcoes/?ativo=true`. Cada item retorna apenas `id`, `nome` e `image_perfil`, com `attachment_key` e `url` da imagem (ou `null` quando não houver imagem).
+- Busca por parte do nome: `GET /api/equipes/opcoes/?search=cypher&ativo=true&page=1`. O `SearchFilter` já configurado busca no campo `nome`, sem diferenciar maiúsculas de minúsculas. O `DjangoFilterBackend` mantém os filtros existentes, como `ativo`, `instituicao` e `categorias__nome`.
+- A resposta mantém a paginação de equipes: `total`, `paginas`, `pagina_atual` e `items`. Use `page` para navegar e `page_size` para ajustar a quantidade de resultados (padrão 4, máximo 15).
+- Envio: `POST /api/sugestoes-projetos/`, com JSON e autenticação JWT (`Authorization: Bearer <token>`).
+
+```json
+{
+  "titulo": "Robô de coleta seletiva",
+  "equipe": "<uuid da equipe>",
+  "descricao": "Construir um robô para separar materiais recicláveis.",
+  "anonimo": true,
+  "anexos": []
+}
+```
+
+`titulo`, `equipe` e `descricao` são obrigatórios. O título aceita até 30 caracteres, seguindo o limite de projetos; a descrição aceita até 1.000 caracteres, conforme o contador do formulário. A equipe precisa estar cadastrada e ativa. Não é necessário enviar instituição.
+
+No componente Vue, use um campo de busca para consultar o endpoint de equipes após uma pausa de aproximadamente 300 ms na digitação (debounce). Cancele a requisição anterior com `AbortController` quando a busca mudar e volte à página 1. Exiba `nome` nas opções e envie o `id` da equipe selecionada no campo `equipe` da sugestão. Para mais resultados, use `page` e os metadados `paginas` e `pagina_atual` da resposta.
+
+Todo envio exige login, inclusive o anônimo. "Não quero me identificar" corresponde a `anonimo: true` (padrão): a sugestão é salva sem vínculo com o autor. "Quero me identificar" corresponde a `anonimo: false`: o backend vincula a sugestão ao usuário autenticado. O cliente não pode escolher outro autor. Sem um token JWT válido, o envio retorna `401 Unauthorized`.
+
+Para inserir anexos, envie cada PDF ao endpoint existente `POST /api/media/documents/`, como `multipart/form-data`, no campo `file` (`description` é opcional). Envie os valores de `attachment_key` retornados na lista `anexos` da sugestão. Os anexos são opcionais e seguem a validação de PDF já adotada pelo uploader.
+
+O envio retorna `201 Created`, com o identificador e os dados da sugestão. Dados inválidos retornam `400 Bad Request`, com os erros associados aos campos. O botão "Limpar" deve resetar os campos e a seleção de anexos no frontend; não exige uma chamada à API.
+
+A consulta requer autenticação:
+
+- `GET /api/sugestoes-projetos/`: sugestões enviadas pelo próprio usuário com identificação ou recebidas pelas equipes das quais participa como aluno ou professor. Administradores (`is_staff`) têm acesso a todas.
+- Filtros disponíveis: `equipe` e `anonimo`, sem ampliar o acesso do usuário.
+- `GET /api/sugestoes-projetos/<id>/`: detalhes com identificação do autor quando informada e URLs dos anexos. Sugestões fora do acesso do usuário retornam `404`.
+
+As sugestões também estão registradas no Django Admin. Antes de usar o endpoint, aplique a migração com `pdm run python manage.py migrate`.
+
 ## Comandos Úteis
 
 - `pdm run dev`: Executa o servidor de desenvolvimento. Antes de executar o servidor, descobre o endereço IP da máquina e atualiza o arquivo `.env` com o endereço IP.

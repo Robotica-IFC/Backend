@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.serializers import ModelSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -9,6 +10,7 @@ class UserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'name', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'groups', 'username']
+        read_only_fields = ['is_active', 'is_staff', 'is_superuser', 'groups', 'email']
         depth = 1
 
 
@@ -24,6 +26,12 @@ class UserRegistrationSerializer(ModelSerializer):
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        if not self.user.email_verified:
+            raise PermissionDenied({'detail': 'Confirme seu e-mail antes de entrar.', 'code': 'email_not_verified'})
+        return data
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -66,3 +74,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             token['tipo'] = 'admin'
 
         return token
+
+
+class VerificationEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class VerifyEmailSerializer(VerificationEmailSerializer):
+    codigo = serializers.RegexField(r'^[0-9]{6}$', min_length=6, max_length=6)

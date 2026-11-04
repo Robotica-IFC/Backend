@@ -8,6 +8,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from core.permissions_social import CanEditTeam
 from core.models import Equipe
 from core.pagination import EquipePagination
 from core.serializers import (
@@ -19,7 +20,7 @@ from core.serializers import (
 )
 
 
-class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     queryset = Equipe.objects.all()
     serializer_class = EquipeSerializer
     pagination_class = EquipePagination
@@ -29,7 +30,7 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
     search_fields = ['nome']
     ordering = ['-views']
 
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, CanEditTeam]
 
     def get_queryset(self):
         """

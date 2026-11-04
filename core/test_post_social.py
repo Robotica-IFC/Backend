@@ -52,3 +52,32 @@ class PostSocialTests(TestCase):
         self.assertEqual(self.client.delete(f'{url}{comment.pk}/').status_code, 403)
         self.client.force_authenticate(self.student_user)
         self.assertEqual(self.client.delete(f'{url}{comment.pk}/').status_code, 204)
+
+    def test_post_image_format_defaults_to_rectangle(self):
+        self.assertEqual(self.post.formato_imagem, 'RETANGULAR')
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.get(f'/api/posts/{self.post.pk}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['formato_imagem'], 'RETANGULAR')
+
+    def test_post_author_can_change_image_format(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.patch(
+            f'/api/posts/{self.post.pk}/',
+            {'formato_imagem': 'QUADRADO'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.formato_imagem, 'QUADRADO')
+
+    def test_post_rejects_invalid_image_format(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.patch(
+            f'/api/posts/{self.post.pk}/',
+            {'formato_imagem': 'VERTICAL'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.formato_imagem, 'RETANGULAR')

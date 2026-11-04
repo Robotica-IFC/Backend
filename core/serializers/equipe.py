@@ -71,8 +71,16 @@ class EquipeSerializer(ModelSerializer):
             for field in ('alunos', 'professores', 'criador'):
                 if field in attrs:
                     raise ValidationError({field: 'Altere participantes exclusivamente por convites ou remoção autorizada.'})
-        elif 'criador' in attrs:
-            raise ValidationError({'criador': 'O criador é definido automaticamente.'})
+        else:
+            if 'criador' in attrs:
+                raise ValidationError({'criador': 'O criador é definido automaticamente.'})
+            if attrs.get('alunos'):
+                raise ValidationError({'alunos': 'Participantes entram somente após aceitar um convite.'})
+            current_professor = getattr(self.context['request'].user, 'professor_profile', None)
+            if not current_professor:
+                raise ValidationError({'professores': 'Somente professores podem criar equipes.'})
+            if any(prof.pk != current_professor.pk for prof in attrs.get('professores', [])):
+                raise ValidationError({'professores': 'Outros professores devem ser convidados após a criação.'})
         return attrs
 
     image_perfil = SlugRelatedField(

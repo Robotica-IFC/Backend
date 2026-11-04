@@ -7,6 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework import status
 
 from core.permissions_social import CanEditTeam
 from core.models import Equipe
@@ -112,8 +114,37 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
 
         return Response({'detail': 'Saída da equipe realizada com sucesso.'}, status=200)
 
+    @action(detail=True, methods=['delete'], url_path=r'membros/(?P<membro_id>[^/.]+)', permission_classes=[IsAuthenticated])
+    @transaction.atomic
+    def remover_membro(self, request, pk=None, membro_id=None):
+        equipe = self.get_object()
+        if not equipe.criador_id:
+            raise PermissionDenied('Equipe sem criador cadastrado: é necessário regularizar os dados.')
+        if equipe.criador.user_id != request.user.pk:
+            raise PermissionDenied('Somente o professor criador pode remover membros.')
+        tipo = request.query_params.get('tipo')
+        if tipo == 'aluno':
+            membro = equipe.alunos.filter(pk=membro_id).first()
+            if membro is None:
+                raise ValidationError({'membro': 'Aluno não pertence à equipe.'})
+            equipe.alunos.remove(membro)
+        elif tipo == 'professor':
+            membro = equipe.professores.filter(pk=membro_id).first()
+            if membro is None:
+                raise ValidationError({'membro': 'Professor não pertence à equipe.'})
+            if membro.pk == equipe.criador_id:
+                raise ValidationError({'membro': 'O professor criador não pode ser removido.'})
+            equipe.professores.remove(membro)
+        else:
+            raise ValidationError({'tipo': 'Informe aluno ou professor.'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def perform_create(self, serializer):
-        equipe = serializer.save()
+        professor = getattr(self.request.user, 'professor_profile', None)
+        if professor is None:
+            raise PermissionDenied('Apenas professores podem criar equipes.')
+        equipe = serializer.save(criador=professor)
+        equipe.professores.add(professor)
 
         primeiro_professor = equipe.professores.first()
 

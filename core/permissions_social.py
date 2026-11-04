@@ -26,7 +26,7 @@ class CanEditProject(BasePermission):
 
 class CanEditPost(BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
+        if request.method in SAFE_METHODS or view.action in {'curtir', 'comentarios', 'excluir_comentario'}:
             return True
         return bool(
             request.user.is_staff or

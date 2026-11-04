@@ -45,3 +45,42 @@ class ConvitesEquipeTests(TestCase):
         response = self.client.post('/api/convites/', {'equipe': str(self.team.pk), 'aluno': str(self.other.pk)}, format='json')
         self.client.force_authenticate(self.student_user)
         self.assertEqual(self.client.post(f"/api/convites/{response.data['id']}/aceitar/").status_code, 403)
+
+    def test_professor_outside_team_cannot_invite(self):
+        outsider_user = User.objects.create_user(email='outsider@test.example')
+        outsider = Professor.objects.create(
+            user=outsider_user, cpf='33333333333', telefone='47999999997',
+            data_nascimento=date(1989, 1, 1)
+        )
+        self.client.force_authenticate(outsider_user)
+        response = self.client.post('/api/convites/', {
+            'equipe': str(self.team.pk), 'aluno': str(self.other.pk)
+        }, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Convite.objects.filter(convidante=outsider).exists())
+
+    def test_invitation_decline_does_not_add_member(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.post('/api/convites/', {
+            'equipe': str(self.team.pk), 'aluno': str(self.other.pk)
+        }, format='json')
+        self.client.force_authenticate(self.other_user)
+        decline = self.client.post(f"/api/convites/{response.data['id']}/recusar/")
+        self.assertEqual(decline.status_code, 200)
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())
+
+    def test_creator_cannot_leave_team(self):
+        self.client.force_authenticate(self.owner_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/sair/')
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(self.team.professores.filter(pk=self.owner.pk).exists())
+
+    def test_non_creator_cannot_modify_members_via_patch(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.patch(
+            f'/api/equipes/{self.team.pk}/',
+            {'alunos': []},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(self.team.alunos.filter(pk=self.student.pk).exists())

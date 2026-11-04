@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from uploader.helpers.files import CONTENT_TYPE_PDF, get_content_type
+from uploader.helpers.files import CONTENT_TYPE_PDF, get_content_type, get_file_url
 from uploader.models import Document
 
 
@@ -19,6 +19,8 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
 
 
 class DocumentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = Document
         fields = ["url", "description", "uploaded_on", "attachment_key", "public_id"]
@@ -26,3 +28,6 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         raise NotImplementedError("Use DocumentUploadSerializer to create document files.")
+
+    def get_url(self, obj):
+        return get_file_url(obj.file, self.context.get('request'))

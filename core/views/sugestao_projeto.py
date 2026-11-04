@@ -30,7 +30,9 @@ class SugestaoProjetoViewSet(
         if not user.is_authenticated:
             return self.queryset.none()
 
-        queryset = super().get_queryset().select_related('equipe', 'autor').prefetch_related('anexos')
+        queryset = super().get_queryset().select_related(
+            'equipe', 'autor__aluno_profile__imagem_perfil', 'autor__professor_profile__imagem_perfil',
+        ).prefetch_related('anexos')
         if user.is_staff:
             return queryset
 

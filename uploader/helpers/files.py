@@ -1,4 +1,7 @@
+from urllib.parse import urlsplit
+
 import magic
+from django.conf import settings
 
 CONTENT_TYPE_ICO = "image/x-icon"
 CONTENT_TYPE_JPG = "image/jpeg"
@@ -8,6 +11,16 @@ CONTENT_TYPE_GIF = "image/gif"
 
 
 CONTENT_TYPE_PDF = "application/pdf"
+
+
+def get_file_url(file, request=None):
+    url = file.url
+    if request is None:
+        return url
+    if settings.MODE == 'DEVELOPMENT':
+        # Os anexos locais são servidos pelo mesmo host e porta da API.
+        url = urlsplit(url).path
+    return request.build_absolute_uri(url)
 
 
 def get_content_type(file):

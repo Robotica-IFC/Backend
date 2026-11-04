@@ -32,6 +32,26 @@ class EstoqueSerializerTests(TestCase):
         assert serializer.data['estoque_id'] == estoque.id
 
 
+class ProjetoOrigemAPITests(APITestCase):
+    def test_creation_list_and_detail_preserve_suggestion_origin(self):
+        equipe = Equipe.objects.create(nome='Equipe Alpha')
+        self.client.force_authenticate(User.objects.create_user(email='professor@example.com'))
+        for from_suggestion in [True, False]:
+            with self.subTest(from_suggestion=from_suggestion):
+                created = self.client.post(reverse('projetos-list'), {
+                    'titulo': 'Robô reciclador', 'desc_curta': 'Coleta seletiva',
+                    'descricao': 'Projeto de coleta seletiva.', 'equipe': str(equipe.pk),
+                    'sugestao': from_suggestion,
+                }, format='json')
+
+                assert created.status_code == status.HTTP_201_CREATED
+                detail = self.client.get(reverse('projetos-detail', args=[created.data['id']]))
+                listing = self.client.get(reverse('projetos-list'), {'equipe': str(equipe.pk)})
+                project = next(item for item in listing.data['results'] if item['id'] == created.data['id'])
+                assert detail.data['sugestao'] is from_suggestion
+                assert project['sugestao'] is from_suggestion
+
+
 @override_settings(STORAGES={'default': {'BACKEND': 'django.core.files.storage.InMemoryStorage'}})
 class EquipeOpcoesAPITests(APITestCase):
     @classmethod
@@ -280,10 +300,12 @@ class SugestaoProjetoEnvioAPITests(SugestaoProjetoAPITestCase):
         sugestao = SugestaoProjeto.objects.get(pk=response.data['id'])
         assert sugestao.anexos.count() == len(attachment_keys)
         self.client.force_authenticate(self.professor_user)
-        detail = self.client.get(reverse('sugestoes-projetos-detail', args=[sugestao.pk]))
+        detail = self.client.get(
+            reverse('sugestoes-projetos-detail', args=[sugestao.pk]), HTTP_HOST='backend.example:8000',
+        )
         assert detail.status_code == status.HTTP_200_OK
         assert len(detail.data['anexos']) == len(attachment_keys)
-        assert all(anexo['url'] for anexo in detail.data['anexos'])
+        assert all(anexo['url'].startswith('http://backend.example:8000/media/') for anexo in detail.data['anexos'])
 
     def test_unknown_attachment_does_not_save_the_suggestion(self):
         self.payload['anexos'] = [str(uuid4())]
@@ -344,6 +366,54 @@ class SugestaoProjetoConsultaAPITests(SugestaoProjetoAPITestCase):
         assert detail.data['autor']['id'] == self.autor.pk
         assert detail.data['autor']['name'] == self.autor.name
         assert 'email' not in detail.data['autor']
+        assert detail.data['autor']['perfil_id'] is None
+        assert detail.data['autor']['tipo'] is None
+        assert detail.data['autor']['imagem_perfil'] is None
+
+    def test_teacher_can_see_identified_student_profile_and_photo(self):
+        image = Image.objects.create(file='images/autor.png')
+        aluno = Aluno.objects.create(user=self.autor, data_nascimento=date(2005, 1, 1), imagem_perfil=image)
+        self.autor.username = 'autor.robotica'
+        self.autor.save(update_fields=['username'])
+        self.payload['anonimo'] = False
+        self.client.post(self.url, self.payload, format='json')
+        self.client.force_authenticate(self.professor_user)
+
+        listing = self.client.get(self.url, {'equipe': str(self.equipe.pk)}, HTTP_HOST='backend.example:8000')
+
+        author = listing.data['results'][0]['autor']
+        assert author['username'] == 'autor.robotica'
+        assert author['tipo'] == 'aluno'
+        assert author['perfil_id'] == str(aluno.pk)
+        assert author['imagem_perfil']['url'] == 'http://backend.example:8000/media/images/autor.png'
+        assert 'email' not in author
+
+    def test_identified_teacher_profile_has_the_teacher_id(self):
+        professor = self.professor_user.professor_profile
+        image = Image.objects.create(file='images/professor.png')
+        professor.imagem_perfil = image
+        professor.save(update_fields=['imagem_perfil'])
+        self.client.force_authenticate(self.professor_user)
+        self.payload['anonimo'] = False
+        created = self.client.post(self.url, self.payload, format='json')
+
+        detail = self.client.get(reverse('sugestoes-projetos-detail', args=[created.data['id']]))
+
+        author = detail.data['autor']
+        assert author['tipo'] == 'professor'
+        assert author['perfil_id'] == str(professor.pk)
+        assert author['imagem_perfil']['url'].endswith('/media/images/professor.png')
+
+    def test_anonymous_suggestion_never_exposes_profile_data(self):
+        suggestion = SugestaoProjeto.objects.create(
+            titulo=self.payload['titulo'], equipe=self.equipe, descricao=self.payload['descricao'],
+            anonimo=True, autor=self.professor_user,
+        )
+        self.client.force_authenticate(self.professor_user)
+
+        detail = self.client.get(reverse('sugestoes-projetos-detail', args=[suggestion.pk]))
+
+        assert detail.data['autor'] is None
 
     def test_staff_can_read_submissions(self):
         created = self.client.post(self.url, self.payload, format='json')

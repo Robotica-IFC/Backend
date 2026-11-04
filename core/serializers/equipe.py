@@ -65,13 +65,14 @@ class CategoriaCardSerializer(ModelSerializer):
 
 
 class EquipeSerializer(ModelSerializer):
+    criador = ReadOnlyField(source='criador_id')
     def validate(self, attrs):
-        if self.instance and 'professores' in attrs and not attrs['professores']:
-            raise ValidationError({'professores': 'A equipe deve ter ao menos um professor.'})
-        if self.instance and 'professores' in attrs:
-            user = self.context['request'].user
-            if not user.is_staff and not any(professor.user_id == user.pk for professor in attrs['professores']):
-                raise ValidationError({'professores': 'Você não pode remover seu próprio acesso de professor.'})
+        if self.instance:
+            for field in ('alunos', 'professores', 'criador'):
+                if field in attrs:
+                    raise ValidationError({field: 'Altere participantes exclusivamente por convites ou remoção autorizada.'})
+        elif 'criador' in attrs:
+            raise ValidationError({'criador': 'O criador é definido automaticamente.'})
         return attrs
 
     image_perfil = SlugRelatedField(
@@ -90,6 +91,7 @@ class EquipeSerializer(ModelSerializer):
 
 
 class EquipeListRetrieveSerializer(ModelSerializer):
+    criador = ReadOnlyField(source='criador_id')
     image_perfil = ImageSerializer(read_only=True)
     professores = ProfessorEquipeSerializer(many=True, read_only=True)
     alunos = AlunoEquipeSerializer(many=True, read_only=True)
@@ -109,6 +111,7 @@ class EquipeListRetrieveSerializer(ModelSerializer):
         model = Equipe
         fields = [
             'id',
+            'criador',
             'nome',
             'descricao',
             'ativo',
@@ -166,6 +169,9 @@ class SairEquipeSerializer(Serializer):
                 professor = user.professor_profile
             except Professor.DoesNotExist:
                 raise ValidationError('Usuário não é aluno nem professor.')
+
+            if equipe.criador_id == professor.pk:
+                raise ValidationError('O professor criador não pode sair da equipe.')
 
             if not equipe.professores.filter(pk=professor.pk).exists():
                 raise ValidationError('Professor não pertence a esta equipe.')

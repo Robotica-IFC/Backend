@@ -65,6 +65,15 @@ class CategoriaCardSerializer(ModelSerializer):
 
 
 class EquipeSerializer(ModelSerializer):
+    def validate(self, attrs):
+        if self.instance and 'professores' in attrs and not attrs['professores']:
+            raise ValidationError({'professores': 'A equipe deve ter ao menos um professor.'})
+        if self.instance and 'professores' in attrs:
+            user = self.context['request'].user
+            if not user.is_staff and not any(professor.user_id == user.pk for professor in attrs['professores']):
+                raise ValidationError({'professores': 'Você não pode remover seu próprio acesso de professor.'})
+        return attrs
+
     image_perfil = SlugRelatedField(
         slug_field='attachment_key', queryset=Image.objects.all(), required=False, allow_null=True
     )

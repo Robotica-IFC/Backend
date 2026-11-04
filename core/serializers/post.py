@@ -57,14 +57,15 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'legenda', 'projeto', 'criado_em', 'images', 'aluno_criador', 'professor_criador']
+        fields = ['id', 'legenda', 'formato_imagem', 'projeto', 'criado_em', 'images', 'aluno_criador', 'professor_criador']
         read_only_fields = ['criado_em', 'aluno_criador', 'professor_criador']
 
     @transaction.atomic
     def update(self, instance, validated_data):
         images_data = validated_data.pop('images', None)
         instance.legenda = validated_data.get('legenda', instance.legenda)
-        instance.save(update_fields=['legenda'])
+        instance.formato_imagem = validated_data.get('formato_imagem', instance.formato_imagem)
+        instance.save(update_fields=['legenda', 'formato_imagem'])
         if images_data is not None:
             images = []
             for data in images_data:

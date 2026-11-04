@@ -5,6 +5,7 @@ from uploader.models import Image
 
 class Post(models.Model):
     legenda = models.TextField(blank=True)
+    formato_imagem = models.CharField(max_length=12, choices=[('QUADRADO', 'Quadrado'), ('RETANGULAR', 'Retangular')], default='RETANGULAR')
     criado_em = models.DateTimeField(auto_now_add=True)
     aluno_criador = models.ForeignKey(
         'core.Aluno',

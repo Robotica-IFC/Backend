@@ -31,7 +31,8 @@ class ConviteViewSet(ModelViewSet):
     @action(detail=False, methods=['get'], url_path='recebidos')
     def recebidos(self, request):
         convites = self.get_queryset().filter(
-            Q(aluno__user=request.user) | Q(professor__user=request.user)
+            Q(aluno__user=request.user) | Q(professor__user=request.user),
+            status=Convite.StatusChoices.PENDENTE,
         ).order_by('-pk')
         return Response(self.get_serializer(convites, many=True).data)
 

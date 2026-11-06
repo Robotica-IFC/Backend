@@ -44,7 +44,8 @@ class ConvitesEquipeTests(TestCase):
         self.client.force_authenticate(self.owner_user)
         response = self.client.post('/api/convites/', {'equipe': str(self.team.pk), 'aluno': str(self.other.pk)}, format='json')
         self.client.force_authenticate(self.student_user)
-        self.assertEqual(self.client.post(f"/api/convites/{response.data['id']}/aceitar/").status_code, 403)
+        # Convites fora do acesso do usuário não são expostos pelo queryset.
+        self.assertEqual(self.client.post(f"/api/convites/{response.data['id']}/aceitar/").status_code, 404)
 
     def test_professor_outside_team_cannot_invite(self):
         outsider_user = User.objects.create_user(email='outsider@test.example')

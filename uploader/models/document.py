@@ -3,7 +3,7 @@ import uuid
 
 from django.db import models
 
-from uploader.helpers.files import get_content_type
+from uploader.helpers.files import CONTENT_TYPE_PDF, get_content_type, get_file_url
 
 
 def document_file_path(document, _) -> str:
@@ -30,6 +30,7 @@ class Document(models.Model):
         ),
     )
     file = models.FileField(upload_to=document_file_path)
+    content_type = models.CharField(max_length=100, default=CONTENT_TYPE_PDF)
     description = models.CharField(max_length=255, blank=True)
     uploaded_on = models.DateTimeField(auto_now_add=True)
 
@@ -38,4 +39,5 @@ class Document(models.Model):
 
     @property
     def url(self) -> str:
-        return self.file.url  # pylint: disable=no-member
+        file_format = 'pdf' if self.content_type == CONTENT_TYPE_PDF else None
+        return get_file_url(self.file, file_format=file_format)

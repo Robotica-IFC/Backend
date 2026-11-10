@@ -1,3 +1,4 @@
+from core.views.user import EmailVerificationView, ResendVerificationCodeView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -49,6 +50,8 @@ router.register(r'projetos', ProjetoViewSet, basename='projetos')
 router.register(r'sugestoes-projetos', SugestaoProjetoViewSet, basename='sugestoes-projetos')
 
 urlpatterns = [
+    path('api/verificar-email/', EmailVerificationView.as_view()),
+    path('api/reenviar-codigo/', ResendVerificationCodeView.as_view()),
     path('admin/', admin.site.urls),
     # OpenAPI 3
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

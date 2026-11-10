@@ -317,6 +317,125 @@ class SugestaoProjetoEnvioAPITests(SugestaoProjetoAPITestCase):
         assert not SugestaoProjeto.objects.exists()
 
 
+class SugestaoProjetoEstadoAPITests(SugestaoProjetoAPITestCase):
+    actions = ['favoritar', 'desfavoritar', 'recusar', 'aceitar']
+
+    def setUp(self):
+        super().setUp()
+        self.payload['anonimo'] = False
+        created = self.client.post(self.url, self.payload, format='json')
+        self.sugestao = SugestaoProjeto.objects.get(pk=created.data['id'])
+        self.client.force_authenticate(self.professor_user)
+
+    def perform_action(self, action):
+        return self.client.post(
+            reverse(f'sugestoes-projetos-{action}', args=[self.sugestao.pk]), format='json',
+        )
+
+    def test_favorite_and_unfavorite_persist_and_return_complete_suggestion(self):
+        for action, expected in [('favoritar', True), ('favoritar', True), ('desfavoritar', False)]:
+            with self.subTest(action=action):
+                response = self.perform_action(action)
+
+                assert response.status_code == status.HTTP_200_OK
+                assert response.data['favorita'] is expected
+                assert response.data['titulo'] == self.payload['titulo']
+                assert response.data['autor']['id'] == self.autor.pk
+                assert response.data['anexos'] == []
+                self.sugestao.refresh_from_db()
+                assert self.sugestao.favorita is expected
+
+    def test_reject_and_restore_persist_and_keep_favorite(self):
+        self.perform_action('favoritar')
+        rejected = self.perform_action('recusar')
+
+        assert rejected.status_code == status.HTTP_200_OK
+        assert rejected.data['recusada'] is True
+        assert rejected.data['recusada_em'] is not None
+        self.sugestao.refresh_from_db()
+        assert self.sugestao.recusada
+        assert self.sugestao.recusada_em is not None
+        assert self.sugestao.favorita
+
+        repeated = self.perform_action('recusar')
+        assert repeated.data['recusada_em'] == rejected.data['recusada_em']
+
+        restored = self.perform_action('aceitar')
+        assert restored.status_code == status.HTTP_200_OK
+        assert restored.data['recusada'] is False
+        assert restored.data['recusada_em'] is None
+        assert restored.data['favorita'] is True
+        self.sugestao.refresh_from_db()
+        assert not self.sugestao.recusada
+        assert self.sugestao.recusada_em is None
+        assert not Projeto.objects.exists()
+
+    def test_list_and_detail_include_saved_state(self):
+        self.perform_action('favoritar')
+        rejected = self.perform_action('recusar')
+
+        listing = self.client.get(self.url, {'equipe': str(self.equipe.pk)})
+        detail = self.client.get(reverse('sugestoes-projetos-detail', args=[self.sugestao.pk]))
+
+        for data in [listing.data['results'][0], detail.data]:
+            assert data['favorita'] is True
+            assert data['recusada'] is True
+            assert data['recusada_em'] == rejected.data['recusada_em']
+
+    def test_author_and_team_student_cannot_manage_suggestions(self):
+        for user in [self.autor, self.aluno_user]:
+            self.client.force_authenticate(user)
+            for action in self.actions:
+                with self.subTest(user=user.pk, action=action):
+                    response = self.perform_action(action)
+                    assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.sugestao.refresh_from_db()
+        assert not self.sugestao.favorita
+        assert not self.sugestao.recusada
+        assert self.sugestao.recusada_em is None
+
+    def test_unrelated_users_and_teachers_cannot_manage_other_teams(self):
+        self.sugestao.equipe = self.outra_equipe
+        self.sugestao.save(update_fields=['equipe'])
+
+        for user in [self.outro_usuario, self.professor_user]:
+            self.client.force_authenticate(user)
+            for action in self.actions:
+                with self.subTest(user=user.pk, action=action):
+                    response = self.perform_action(action)
+                    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_public_cannot_manage_suggestions(self):
+        self.client.force_authenticate(user=None)
+
+        for action in self.actions:
+            with self.subTest(action=action):
+                response = self.perform_action(action)
+                assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_staff_can_manage_suggestions(self):
+        self.client.force_authenticate(self.admin)
+
+        for action in self.actions:
+            with self.subTest(action=action):
+                response = self.perform_action(action)
+                assert response.status_code == status.HTTP_200_OK
+
+    def test_submission_cannot_set_management_state(self):
+        self.client.force_authenticate(self.autor)
+        response = self.client.post(
+            self.url,
+            {**self.payload, 'favorita': True, 'recusada': True, 'recusada_em': '2026-11-10T12:00:00Z'},
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        created = SugestaoProjeto.objects.get(pk=response.data['id'])
+        assert not created.favorita
+        assert not created.recusada
+        assert created.recusada_em is None
+
+
 class SugestaoProjetoConsultaAPITests(SugestaoProjetoAPITestCase):
     def test_public_cannot_read_submissions(self):
         created = self.client.post(self.url, self.payload, format='json')

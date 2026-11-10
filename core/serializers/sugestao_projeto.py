@@ -18,8 +18,11 @@ class SugestaoProjetoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SugestaoProjeto
-        fields = ['id', 'titulo', 'equipe', 'descricao', 'anonimo', 'autor', 'anexos', 'criado_em']
-        read_only_fields = ['id', 'autor', 'criado_em']
+        fields = [
+            'id', 'titulo', 'equipe', 'descricao', 'anonimo', 'autor', 'anexos', 'criado_em',
+            'favorita', 'recusada', 'recusada_em',
+        ]
+        read_only_fields = ['id', 'autor', 'criado_em', 'favorita', 'recusada', 'recusada_em']
 
     def create(self, validated_data):
         validated_data['autor'] = None if validated_data['anonimo'] else self.context['request'].user
@@ -73,6 +76,9 @@ class SugestaoProjetoListRetrieveSerializer(serializers.ModelSerializer):
             'autor',
             'anexos',
             'criado_em',
+            'favorita',
+            'recusada',
+            'recusada_em',
         ]
 
     def get_autor(self, obj):

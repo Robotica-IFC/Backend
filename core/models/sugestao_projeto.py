@@ -8,6 +8,9 @@ class SugestaoProjeto(models.Model):
     descricao = models.TextField(max_length=1000, validators=[MaxLengthValidator(1000)])
     criado_em = models.DateTimeField(auto_now_add=True)
     anonimo = models.BooleanField(default=True)
+    favorita = models.BooleanField(default=False)
+    recusada = models.BooleanField(default=False)
+    recusada_em = models.DateTimeField(null=True, blank=True)
 
     equipe = models.ForeignKey(
         'core.Equipe',

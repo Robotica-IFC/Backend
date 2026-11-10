@@ -74,4 +74,4 @@ path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'), p
     # API
     path('api/', include(router.urls)),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_ENDPOINT, document_root=settings.MEDIA_ROOT)

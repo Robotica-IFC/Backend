@@ -5,8 +5,11 @@ from uploader.helpers.files import get_file_url
 from uploader.models import Document
 from uploader.serializers.document import DocumentSerializer
 
+MAX_SUGGESTION_ATTACHMENTS = 4
+
 
 class SugestaoProjetoSerializer(serializers.ModelSerializer):
+    favorita = serializers.BooleanField(read_only=True, default=False)
     equipe = serializers.PrimaryKeyRelatedField(queryset=Equipe.objects.filter(ativo=True))
     anonimo = serializers.BooleanField(default=True)
     anexos = serializers.SlugRelatedField(
@@ -20,9 +23,14 @@ class SugestaoProjetoSerializer(serializers.ModelSerializer):
         model = SugestaoProjeto
         fields = [
             'id', 'titulo', 'equipe', 'descricao', 'anonimo', 'autor', 'anexos', 'criado_em',
-            'favorita', 'recusada', 'recusada_em',
+            'recusada', 'recusada_em', 'favorita',
         ]
-        read_only_fields = ['id', 'autor', 'criado_em', 'favorita', 'recusada', 'recusada_em']
+        read_only_fields = ['id', 'autor', 'criado_em', 'recusada', 'recusada_em']
+
+    def validate_anexos(self, value):
+        if len(value) > MAX_SUGGESTION_ATTACHMENTS:
+            raise serializers.ValidationError('Envie no máximo 4 anexos por sugestão.')
+        return value
 
     def create(self, validated_data):
         validated_data['autor'] = None if validated_data['anonimo'] else self.context['request'].user
@@ -60,6 +68,7 @@ class SugestaoProjetoAutorSerializer(serializers.ModelSerializer):
 
 
 class SugestaoProjetoListRetrieveSerializer(serializers.ModelSerializer):
+    favorita = serializers.BooleanField(read_only=True, default=False)
     equipe_nome = serializers.ReadOnlyField(source='equipe.nome')
     autor = serializers.SerializerMethodField()
     anexos = DocumentSerializer(many=True, read_only=True)
@@ -76,9 +85,9 @@ class SugestaoProjetoListRetrieveSerializer(serializers.ModelSerializer):
             'autor',
             'anexos',
             'criado_em',
-            'favorita',
             'recusada',
             'recusada_em',
+            'favorita',
         ]
 
     def get_autor(self, obj):

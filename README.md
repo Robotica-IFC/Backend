@@ -56,6 +56,10 @@ O projeto também já vem com a documentação da API, gerada automaticamente pe
 
 ## Uso da API
 
+Imagens e anexos são armazenados no Cloudinary tanto em desenvolvimento quanto em produção.
+Configure `CLOUDINARY_URL` no `.env` com as credenciais do ambiente desejado.
+`MODE=DEVELOPMENT` mantém o armazenamento de mídia no Cloudinary.
+
 A documentação completa dos endpoints da API e exemplos de uso estão disponíveis na [Documentação da API](http://localhost:19003/api/swagger/).
 
 ## Sugestões de projeto
@@ -83,7 +87,7 @@ No componente Vue, use um campo de busca para consultar o endpoint de equipes ap
 
 Todo envio exige login, inclusive o anônimo. "Não quero me identificar" corresponde a `anonimo: true` (padrão): a sugestão é salva sem vínculo com o autor. "Quero me identificar" corresponde a `anonimo: false`: o backend vincula a sugestão ao usuário autenticado. O cliente não pode escolher outro autor. Sem um token JWT válido, o envio retorna `401 Unauthorized`.
 
-Para inserir anexos, envie cada PDF ao endpoint existente `POST /api/media/documents/`, como `multipart/form-data`, no campo `file` (`description` é opcional). Envie os valores de `attachment_key` retornados na lista `anexos` da sugestão. Os anexos são opcionais e seguem a validação de PDF já adotada pelo uploader.
+Para inserir anexos, envie cada PDF ou imagem (JPG, PNG, WEBP ou GIF) ao endpoint existente `POST /api/media/documents/`, como `multipart/form-data`, no campo `file` (`description` é opcional). Envie os valores de `attachment_key` retornados na lista `anexos` da sugestão, com no máximo quatro arquivos no total. Os anexos são opcionais. O servidor identifica e retorna o `content_type` de cada arquivo; documentos antigos continuam identificados como PDF. No celular e tablet, o formulário reutiliza o modal de câmera ou arquivos.
 
 O envio retorna `201 Created`, com o identificador e os dados da sugestão. Dados inválidos retornam `400 Bad Request`, com os erros associados aos campos. O botão "Limpar" deve resetar os campos e a seleção de anexos no frontend; não exige uma chamada à API.
 
@@ -92,6 +96,18 @@ A consulta requer autenticação:
 - `GET /api/sugestoes-projetos/`: sugestões enviadas pelo próprio usuário com identificação ou recebidas pelas equipes das quais participa como aluno ou professor. Administradores (`is_staff`) têm acesso a todas.
 - Filtros disponíveis: `equipe` e `anonimo`, sem ampliar o acesso do usuário.
 - `GET /api/sugestoes-projetos/<id>/`: detalhes com identificação do autor quando informada e URLs dos anexos. Sugestões fora do acesso do usuário retornam `404`.
+
+Na equipe, o painel "Ver sugestões" tem as abas "Sugestões", "Favoritas" e "Recusadas".
+Cada página mostra até quatro sugestões, da mais recente para a mais antiga, com o mesmo
+componente de paginação das equipes. A busca atua sobre a aba selecionada.
+
+- `POST /api/sugestoes-projetos/<id>/recusar/`: marca a sugestão como recusada e registra `recusada_em`.
+- `POST /api/sugestoes-projetos/<id>/aceitar/`: aceita novamente a sugestão, retornando-a à lista disponível.
+- Apenas professores vinculados à equipe ou administradores podem executar essas ações.
+- A recusa preserva texto, autor, anexos e data de envio. Aceitar novamente não cria um projeto.
+- A listagem e o detalhe retornam `recusada` e `recusada_em`; use `?recusada=true` ou `?recusada=false` para filtrar.
+- `POST /api/sugestoes-projetos/<id>/favoritar/` e `POST /api/sugestoes-projetos/<id>/desfavoritar/` marcam ou desmarcam a estrela para o professor autenticado. Professores da equipe e administradores podem usar essas ações.
+- `favorita` na resposta indica o favorito do usuário autenticado, sem expor os favoritos dos outros professores. Uma sugestão recusada permanece em "Recusadas" e retorna a "Favoritas" ao ser aceita novamente se a estrela ainda estiver marcada.
 
 As sugestões também estão registradas no Django Admin. Antes de usar o endpoint, aplique a migração com `pdm run python manage.py migrate`.
 

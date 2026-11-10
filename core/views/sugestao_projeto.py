@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
@@ -22,12 +22,12 @@ class SugestaoProjetoViewSet(
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'head', 'options']
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['equipe', 'anonimo']
+    filterset_fields = ['equipe', 'anonimo', 'recusada']
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            return SugestaoProjetoSerializer
-        return SugestaoProjetoListRetrieveSerializer
+        if self.action in {'list', 'retrieve', 'recusar', 'aceitar', 'favoritar', 'desfavoritar'}:
+            return SugestaoProjetoListRetrieveSerializer
+        return SugestaoProjetoSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -36,7 +36,11 @@ class SugestaoProjetoViewSet(
 
         queryset = super().get_queryset().select_related(
             'equipe', 'autor__aluno_profile__imagem_perfil', 'autor__professor_profile__imagem_perfil',
-        ).prefetch_related('anexos')
+        ).prefetch_related('anexos').annotate(
+            favorita=Exists(SugestaoProjeto.favoritada_por.through.objects.filter(
+                sugestaoprojeto_id=OuterRef('pk'), user_id=user.pk,
+            )),
+        )
         if user.is_staff:
             return queryset
 
@@ -44,34 +48,42 @@ class SugestaoProjetoViewSet(
             Q(autor=user) | Q(equipe__alunos__user=user) | Q(equipe__professores__user=user)
         ).distinct()
 
-    def _get_manageable_suggestion(self):
-        suggestion = self.get_object()
+    def ensure_team_teacher(self, suggestion):
         user = self.request.user
         if not user.is_staff and not suggestion.equipe.professores.filter(user=user).exists():
-            raise PermissionDenied('Apenas professores desta equipe podem gerenciar sugestões.')
-        return suggestion
+            raise PermissionDenied('Apenas professores vinculados à equipe podem gerenciar sugestões.')
 
-    def _save_state(self, suggestion, **changes):
-        for field, value in changes.items():
-            setattr(suggestion, field, value)
-        suggestion.save(update_fields=list(changes))
+    def set_rejected(self, rejected):
+        suggestion = self.get_object()
+        self.ensure_team_teacher(suggestion)
+        if suggestion.recusada != rejected:
+            suggestion.recusada = rejected
+            suggestion.recusada_em = timezone.now() if rejected else None
+            suggestion.save(update_fields=['recusada', 'recusada_em'])
+        return Response(self.get_serializer(suggestion).data)
+
+    @action(detail=True, methods=['post'])
+    def recusar(self, request, pk=None):
+        return self.set_rejected(True)
+
+    @action(detail=True, methods=['post'])
+    def aceitar(self, request, pk=None):
+        return self.set_rejected(False)
+
+    def set_favorite(self, favorite):
+        suggestion = self.get_object()
+        self.ensure_team_teacher(suggestion)
+        if favorite:
+            suggestion.favoritada_por.add(self.request.user)
+        else:
+            suggestion.favoritada_por.remove(self.request.user)
+        suggestion.favorita = favorite
         return Response(self.get_serializer(suggestion).data)
 
     @action(detail=True, methods=['post'])
     def favoritar(self, request, pk=None):
-        return self._save_state(self._get_manageable_suggestion(), favorita=True)
+        return self.set_favorite(True)
 
     @action(detail=True, methods=['post'])
     def desfavoritar(self, request, pk=None):
-        return self._save_state(self._get_manageable_suggestion(), favorita=False)
-
-    @action(detail=True, methods=['post'])
-    def recusar(self, request, pk=None):
-        suggestion = self._get_manageable_suggestion()
-        return self._save_state(
-            suggestion, recusada=True, recusada_em=suggestion.recusada_em or timezone.now(),
-        )
-
-    @action(detail=True, methods=['post'])
-    def aceitar(self, request, pk=None):
-        return self._save_state(self._get_manageable_suggestion(), recusada=False, recusada_em=None)
+        return self.set_favorite(False)

@@ -56,7 +56,7 @@ class EmailVerificationView(APIView):
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
             user = User.objects.select_for_update().filter(email__iexact=serializer.validated_data['email']).first()
-            if not user or not user.is_active or user.email_verified:
+            if not user or user.email_verified:
                 return Response({'detail': 'Verificação indisponível para este e-mail.'}, status=400)
             if not user.verification_code_created_at or timezone.now() >= user.verification_code_created_at + timedelta(minutes=10):
                 return Response({'detail': 'Código expirado. Solicite um novo.'}, status=400)
@@ -86,7 +86,7 @@ class ResendVerificationCodeView(APIView):
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
             user = User.objects.select_for_update().filter(email__iexact=serializer.validated_data['email']).first()
-            if user and user.is_active and not user.email_verified:
+            if user and not user.email_verified:
                 now = timezone.now()
                 created = user.verification_code_created_at
                 if created and now < created + timedelta(seconds=60):

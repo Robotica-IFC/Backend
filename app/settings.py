@@ -134,9 +134,10 @@ MEDIA_ENDPOINT = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 FILE_UPLOAD_PERMISSIONS = 0o640
 
-# Mídias de usuários vão para o Cloudinary em todos os ambientes.
+# Mídia usa Cloudinary em todos os modos, inclusive no desenvolvimento.
 MEDIA_URL = '/media/'
 CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
+CLOUDINARY_STORAGE = {'SECURE': True}
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STORAGES = {
     'default': {

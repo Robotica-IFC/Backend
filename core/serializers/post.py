@@ -1,7 +1,8 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from core.models import Aluno, Post, PostImage, Professor, PostComment
+from core.models import Aluno, Post, PostComment, PostImage, Professor
+from uploader.helpers.files import get_file_url
 from uploader.models import Image
 
 
@@ -140,3 +141,21 @@ class PostListRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
+
+
+class PostDestaqueSerializer(PostListRetrieveSerializer):
+    equipe = serializers.ReadOnlyField(source='projeto.equipe.nome', default=None)
+    equipe_id = serializers.ReadOnlyField(source='projeto.equipe_id', default=None)
+    equipe_image = serializers.SerializerMethodField()
+    curtidas = serializers.IntegerField(source='total_curtidas', read_only=True)
+
+    class Meta(PostListRetrieveSerializer.Meta):
+        fields = [
+            'id', 'legenda', 'projeto', 'criado_em', 'images', 'equipe', 'equipe_id',
+            'equipe_image', 'curtidas', 'curtiu', 'comentarios',
+        ]
+
+    def get_equipe_image(self, obj):
+        if obj.projeto and obj.projeto.equipe.image_perfil:
+            return get_file_url(obj.projeto.equipe.image_perfil.file, self.context.get('request'))
+        return None

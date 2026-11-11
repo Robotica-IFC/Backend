@@ -7,7 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework import status
 
+from core.permissions_social import CanEditTeam
+from core.serializers.equipe import TransferirOwnerSerializer
 from core.models import Equipe
 from core.pagination import EquipePagination
 from core.serializers import (
@@ -19,7 +23,7 @@ from core.serializers import (
 )
 
 
-class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Equipe.objects.all()
     serializer_class = EquipeSerializer
     pagination_class = EquipePagination
@@ -29,7 +33,7 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
     search_fields = ['nome']
     ordering = ['-views']
 
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, CanEditTeam]
 
     def get_queryset(self):
         """
@@ -58,6 +62,40 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
         elif self.action == 'opcoes':
             return EquipeOpcaoSerializer
         return EquipeSerializer
+
+    def get_locked_team(self, pk):
+        equipe = get_object_or_404(Equipe.objects.select_for_update(), pk=pk)
+        self.check_object_permissions(self.request, equipe)
+        return equipe
+
+    def require_owner(self, equipe):
+        if not equipe.criador_id or equipe.criador.user_id != self.request.user.pk:
+            raise PermissionDenied('Somente o OWNER da equipe pode realizar esta ação.')
+
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        equipe = self.get_locked_team(kwargs['pk'])
+        self.require_owner(equipe)
+        # Convites protegem a equipe por padrão; a exclusão explícita inclui seu histórico.
+        equipe.convites.all().delete()
+        equipe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'], url_path='transferir-owner')
+    @transaction.atomic
+    def transferir_owner(self, request, pk=None):
+        equipe = self.get_locked_team(pk)
+        self.require_owner(equipe)
+        serializer = TransferirOwnerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        professor = equipe.professores.filter(pk=serializer.validated_data['professor']).first()
+        if professor is None:
+            raise ValidationError({'professor': 'O novo OWNER precisa ser professor desta equipe.'})
+        if professor.pk == equipe.criador_id:
+            raise ValidationError({'professor': 'Este professor já é o OWNER da equipe.'})
+        equipe.criador = professor
+        equipe.save(update_fields=['criador'])
+        return Response(EquipeListRetrieveSerializer(equipe, context=self.get_serializer_context()).data)
 
     @action(detail=False, methods=['get'], url_path='opcoes')
     def opcoes(self, request):
@@ -111,8 +149,34 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
 
         return Response({'detail': 'Saída da equipe realizada com sucesso.'}, status=200)
 
+    @action(detail=True, methods=['delete'], url_path=r'membros/(?P<membro_id>[^/.]+)', permission_classes=[IsAuthenticated])
+    @transaction.atomic
+    def remover_membro(self, request, pk=None, membro_id=None):
+        equipe = self.get_locked_team(pk)
+        self.require_owner(equipe)
+        tipo = request.query_params.get('tipo')
+        if tipo == 'aluno':
+            membro = equipe.alunos.filter(pk=membro_id).first()
+            if membro is None:
+                raise ValidationError({'membro': 'Aluno não pertence à equipe.'})
+            equipe.alunos.remove(membro)
+        elif tipo == 'professor':
+            membro = equipe.professores.filter(pk=membro_id).first()
+            if membro is None:
+                raise ValidationError({'membro': 'Professor não pertence à equipe.'})
+            if membro.pk == equipe.criador_id:
+                raise ValidationError({'membro': 'O OWNER não pode ser removido. Transfira a responsabilidade primeiro.'})
+            equipe.professores.remove(membro)
+        else:
+            raise ValidationError({'tipo': 'Informe aluno ou professor.'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def perform_create(self, serializer):
-        equipe = serializer.save()
+        professor = getattr(self.request.user, 'professor_profile', None)
+        if professor is None:
+            raise PermissionDenied('Apenas professores podem criar equipes.')
+        equipe = serializer.save(criador=professor)
+        equipe.professores.add(professor)
 
         primeiro_professor = equipe.professores.first()
 

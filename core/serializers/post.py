@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from core.models import Aluno, Post, PostImage, Professor
+from core.models import Aluno, Post, PostImage, Professor, PostComment
 from uploader.models import Image
 
 
@@ -57,8 +57,25 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'legenda', 'projeto', 'criado_em', 'images', 'aluno_criador', 'professor_criador']
+        fields = ['id', 'legenda', 'formato_imagem', 'projeto', 'criado_em', 'images', 'aluno_criador', 'professor_criador']
         read_only_fields = ['criado_em', 'aluno_criador', 'professor_criador']
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        images_data = validated_data.pop('images', None)
+        instance.legenda = validated_data.get('legenda', instance.legenda)
+        instance.formato_imagem = validated_data.get('formato_imagem', instance.formato_imagem)
+        instance.save(update_fields=['legenda', 'formato_imagem'])
+        if images_data is not None:
+            images = []
+            for data in images_data:
+                image = Image.objects.filter(pk=data['image_id']).first()
+                if not image:
+                    raise serializers.ValidationError({'images': 'Imagem não encontrada.'})
+                images.append(image)
+            instance.images.all().delete()
+            PostImage.objects.bulk_create([PostImage(post=instance, image=image) for image in images])
+        return instance
 
     @transaction.atomic
     def create(self, validated_data):
@@ -96,11 +113,30 @@ class PostCreateSerializer(serializers.ModelSerializer):
         return post
 
 
+class PostCommentSerializer(serializers.ModelSerializer):
+    autor = serializers.CharField(source='user.name', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    usuario_id = serializers.IntegerField(source='user_id', read_only=True)
+
+    class Meta:
+        model = PostComment
+        fields = ['id', 'texto', 'criado_em', 'autor', 'username', 'usuario_id']
+        read_only_fields = fields
+
+
 class PostListRetrieveSerializer(serializers.ModelSerializer):
+    curtidas = serializers.IntegerField(source='likes.count', read_only=True)
+    curtiu = serializers.SerializerMethodField()
+    comentarios = PostCommentSerializer(source='comments', many=True, read_only=True)
+
+    def get_curtiu(self, obj):
+        user = self.context['request'].user if self.context.get('request') else None
+        return bool(user and user.is_authenticated and obj.likes.filter(user=user).exists())
+
     images = PostImageSerializer(many=True, read_only=True)
     professor_criador = ProfessorSimpleSerializer(read_only=True)
     aluno_criador = AlunoSimpleSerializer(read_only=True)
 
     class Meta:
         model = Post
-        fields = "__all__"
+        fields = '__all__'

@@ -30,6 +30,23 @@ class EmailVerificationTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.data['code'], 'email_not_verified')
 
+    def test_registration_creates_pending_user_and_allows_resend(self):
+        response = self.client.post('/api/alunos/', {
+            'email': 'pendente@example.com',
+            'name': 'Pendente',
+            'username': 'pendente',
+            'password': 'StrongPass123!',
+            'data_nascimento': '2000-01-01',
+        })
+        self.assertEqual(response.status_code, 201, response.data)
+        user = User.objects.get(email='pendente@example.com')
+        self.assertTrue(user.is_active)
+        self.assertFalse(user.email_verified)
+        self.assertEqual(
+            self.client.post('/api/reenviar-codigo/', {'email': user.email}).status_code,
+            200,
+        )
+
     def test_verification_issues_custom_tokens_and_cannot_be_reused(self):
         code = self.code()
         self.assertNotEqual(self.user.verification_code_hash, code)

@@ -441,6 +441,66 @@ class SugestaoProjetoFavoritosAPITests(SugestaoProjetoAPITestCase):
                     assert self.client.post(url).status_code == expected_status
         assert not self.suggestion.favoritada_por.exists()
 
+    def test_team_student_can_read_received_suggestions_and_teacher_favorites(self):
+        other = SugestaoProjeto.objects.create(
+            titulo='Outra ideia', descricao='Sugestão ainda não favoritada', equipe=self.equipe,
+        )
+        self.client.force_authenticate(self.professor_user)
+        self.client.post(self.favorite_url)
+        self.client.force_authenticate(self.aluno_user)
+
+        listing = self.client.get(self.url, {'equipe': str(self.equipe.pk)})
+        detail = self.client.get(self.detail_url)
+
+        assert listing.status_code == status.HTTP_200_OK
+        assert {item['id']: item['favorita'] for item in listing.data['results']} == {
+            self.suggestion.pk: True, other.pk: False,
+        }
+        assert detail.status_code == status.HTTP_200_OK
+        assert detail.data['favorita'] is True
+        assert not self.suggestion.favoritada_por.filter(pk=self.aluno_user.pk).exists()
+
+    def test_student_sees_favorites_from_any_current_team_teacher(self):
+        second_teacher = Professor.objects.create(
+            user=self.outro_usuario, cpf='98765432100', telefone='47988888888',
+            data_nascimento=date(1990, 1, 1), instituicao=self.instituicao,
+        )
+        self.equipe.professores.add(second_teacher)
+        self.suggestion.favoritada_por.add(self.professor_user, self.outro_usuario)
+        self.client.force_authenticate(self.aluno_user)
+        assert self.client.get(self.detail_url).data['favorita'] is True
+
+        self.suggestion.favoritada_por.remove(self.professor_user)
+        assert self.client.get(self.detail_url).data['favorita'] is True
+        self.equipe.professores.remove(second_teacher)
+        self.outra_equipe.professores.add(second_teacher)
+        assert self.client.get(self.detail_url).data['favorita'] is False
+
+    def test_team_favorites_are_not_exposed_to_an_external_author(self):
+        self.suggestion.favoritada_por.add(self.professor_user)
+        self.client.force_authenticate(self.autor)
+
+        assert self.client.get(self.detail_url).data['favorita'] is False
+
+    def test_team_student_cannot_change_a_favorite_suggestion(self):
+        self.suggestion.favoritada_por.add(self.professor_user)
+        self.client.force_authenticate(self.aluno_user)
+
+        for action in ['favoritar', 'desfavoritar', 'recusar', 'aceitar']:
+            with self.subTest(action=action):
+                response = self.client.post(reverse(f'sugestoes-projetos-{action}', args=[self.suggestion.pk]))
+                assert response.status_code == status.HTTP_403_FORBIDDEN
+        for method in ['put', 'patch', 'delete']:
+            with self.subTest(method=method):
+                response = getattr(self.client, method)(self.detail_url, {'titulo': 'Alterado'}, format='json')
+                assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+        self.suggestion.refresh_from_db()
+        assert self.suggestion.titulo == self.payload['titulo']
+        assert not self.suggestion.recusada
+        assert self.suggestion.recusada_em is None
+        assert list(self.suggestion.favoritada_por.all()) == [self.professor_user]
+
     def test_favoriting_requires_authentication_and_allows_staff(self):
         self.client.force_authenticate(user=None)
         assert self.client.post(self.favorite_url).status_code == status.HTTP_401_UNAUTHORIZED

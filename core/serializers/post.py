@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from core.models import Aluno, Post, PostImage, Professor, PostComment
+from core.permissions_social import can_manage_post
 from uploader.models import Image
 
 
@@ -125,6 +126,12 @@ class PostCommentSerializer(serializers.ModelSerializer):
 
 
 class PostListRetrieveSerializer(serializers.ModelSerializer):
+    pode_editar = serializers.SerializerMethodField()
+
+    def get_pode_editar(self, obj):
+        request = self.context.get('request')
+        return can_manage_post(request.user, obj) if request else False
+
     curtidas = serializers.IntegerField(source='likes.count', read_only=True)
     curtiu = serializers.SerializerMethodField()
     comentarios = PostCommentSerializer(source='comments', many=True, read_only=True)

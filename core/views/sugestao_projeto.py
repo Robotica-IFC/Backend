@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Case, Exists, OuterRef, Q, When
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
@@ -7,7 +7,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.models import SugestaoProjeto
+from core.models import Equipe, SugestaoProjeto
 from core.serializers import SugestaoProjetoListRetrieveSerializer, SugestaoProjetoSerializer
 
 
@@ -34,12 +34,30 @@ class SugestaoProjetoViewSet(
         if not user.is_authenticated:
             return self.queryset.none()
 
+        favorites = SugestaoProjeto.favoritada_por.through.objects.filter(
+            sugestaoprojeto_id=OuterRef('pk'),
+        )
+        favorite_status = Exists(favorites.filter(user_id=user.pk))
+        if not user.is_staff:
+            student_membership = Equipe.alunos.through.objects.filter(
+                equipe_id=OuterRef('equipe_id'), aluno__user=user,
+            )
+            teacher_membership = Equipe.professores.through.objects.filter(
+                equipe_id=OuterRef('equipe_id'), professor__user=user,
+            )
+            # Alunos visualizam as favoritas dos professores; professores mantêm sua seleção pessoal.
+            favorite_status = Case(
+                When(
+                    Exists(student_membership) & ~Exists(teacher_membership),
+                    then=Exists(favorites.filter(user__professor_profile__equipes=OuterRef('equipe_id'))),
+                ),
+                default=favorite_status,
+            )
+
         queryset = super().get_queryset().select_related(
             'equipe', 'autor__aluno_profile__imagem_perfil', 'autor__professor_profile__imagem_perfil',
         ).prefetch_related('anexos').annotate(
-            favorita=Exists(SugestaoProjeto.favoritada_por.through.objects.filter(
-                sugestaoprojeto_id=OuterRef('pk'), user_id=user.pk,
-            )),
+            favorita=favorite_status,
         )
         if user.is_staff:
             return queryset

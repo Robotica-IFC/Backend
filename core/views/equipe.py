@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +13,7 @@ from rest_framework import status
 
 from core.permissions_social import CanEditTeam
 from core.serializers.equipe import TransferirOwnerSerializer
-from core.models import Equipe
+from core.models import Equipe, SolicitacaoEquipe
 from core.pagination import EquipePagination
 from core.serializers import (
     EquipeCardSerializer,
@@ -170,6 +171,84 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
         else:
             raise ValidationError({'tipo': 'Informe aluno ou professor.'})
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    def _solicitacao_data(self, solicitacao):
+        return {
+            'id': solicitacao.pk,
+            'equipe': str(solicitacao.equipe_id),
+            'solicitante': solicitacao.solicitante_id,
+            'nome': solicitacao.solicitante.name or solicitacao.solicitante.username or solicitacao.solicitante.email,
+            'status': solicitacao.status,
+            'criada_em': solicitacao.criada_em,
+        }
+
+    @action(detail=True, methods=['get'], url_path='minha-solicitacao', permission_classes=[IsAuthenticated])
+    def minha_solicitacao(self, request, pk=None):
+        equipe = get_object_or_404(Equipe, pk=pk)
+        solicitacao = SolicitacaoEquipe.objects.filter(equipe=equipe, solicitante=request.user).first()
+        return Response({'status': solicitacao.status if solicitacao else None})
+
+    @action(detail=True, methods=['post'], url_path='solicitar', permission_classes=[IsAuthenticated])
+    @transaction.atomic
+    def solicitar(self, request, pk=None):
+        equipe = get_object_or_404(Equipe.objects.select_for_update(), pk=pk)
+        if not equipe.ativo:
+            raise ValidationError('A equipe está inativa.')
+        if equipe.professores.filter(user=request.user).exists() or equipe.alunos.filter(user=request.user).exists():
+            raise ValidationError('Você já participa desta equipe.')
+        aluno = getattr(request.user, 'aluno_profile', None)
+        professor = getattr(request.user, 'professor_profile', None)
+        if aluno is None and professor is None:
+            raise PermissionDenied('Somente alunos ou professores cadastrados podem solicitar entrada.')
+
+        solicitacao, created = SolicitacaoEquipe.objects.get_or_create(
+            equipe=equipe, solicitante=request.user,
+        )
+        if not created:
+            if solicitacao.status == SolicitacaoEquipe.Status.PENDENTE:
+                raise ValidationError('Você já possui uma solicitação pendente.')
+            # Permite solicitar novamente depois de uma recusa, sem duplicar registros.
+            solicitacao.status = SolicitacaoEquipe.Status.PENDENTE
+            solicitacao.criada_em = timezone.now()
+            solicitacao.save(update_fields=['status', 'criada_em'])
+        return Response(self._solicitacao_data(solicitacao), status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'], url_path='solicitacoes', permission_classes=[IsAuthenticated])
+    def solicitacoes(self, request, pk=None):
+        equipe = get_object_or_404(Equipe, pk=pk)
+        if not equipe.professores.filter(user=request.user).exists():
+            raise PermissionDenied('Somente professores da equipe podem consultar solicitações.')
+        qs = equipe.solicitacoes.filter(status=SolicitacaoEquipe.Status.PENDENTE).select_related('solicitante')
+        return Response([self._solicitacao_data(item) for item in qs])
+
+    @action(detail=True, methods=['post'], url_path=r'solicitacoes/(?P<solicitacao_id>[^/.]+)/responder', permission_classes=[IsAuthenticated])
+    @transaction.atomic
+    def responder_solicitacao(self, request, pk=None, solicitacao_id=None):
+        equipe = get_object_or_404(Equipe.objects.select_for_update(), pk=pk)
+        if not equipe.professores.filter(user=request.user).exists():
+            raise PermissionDenied('Somente professores da equipe podem responder solicitações.')
+        solicitacao = get_object_or_404(
+            SolicitacaoEquipe.objects.select_for_update().select_related('solicitante'),
+            pk=solicitacao_id, equipe=equipe,
+        )
+        if solicitacao.status != SolicitacaoEquipe.Status.PENDENTE:
+            raise ValidationError('Solicitação já respondida.')
+        aceitar = request.data.get('aceitar')
+        if not isinstance(aceitar, bool):
+            raise ValidationError({'aceitar': 'Informe true ou false.'})
+        if aceitar:
+            aluno = getattr(solicitacao.solicitante, 'aluno_profile', None)
+            professor = getattr(solicitacao.solicitante, 'professor_profile', None)
+            if aluno is not None:
+                equipe.alunos.add(aluno)
+            elif professor is not None:
+                equipe.professores.add(professor)
+            else:
+                raise ValidationError('Solicitante não possui perfil de aluno ou professor.')
+        solicitacao.status = SolicitacaoEquipe.Status.ACEITA if aceitar else SolicitacaoEquipe.Status.RECUSADA
+        solicitacao.save(update_fields=['status'])
+        return Response(self._solicitacao_data(solicitacao))
 
     def perform_create(self, serializer):
         professor = getattr(self.request.user, 'professor_profile', None)

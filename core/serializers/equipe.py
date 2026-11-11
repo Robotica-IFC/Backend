@@ -5,6 +5,7 @@ from rest_framework.serializers import (
     SerializerMethodField,
     SlugRelatedField,
     ValidationError,
+    UUIDField,
 )
 
 from core.models import Aluno, Categoria, Equipe, Instituicao, Professor, User
@@ -65,6 +66,24 @@ class CategoriaCardSerializer(ModelSerializer):
 
 
 class EquipeSerializer(ModelSerializer):
+    criador = ReadOnlyField(source='criador_id')
+    def validate(self, attrs):
+        if self.instance:
+            for field in ('alunos', 'professores', 'criador'):
+                if field in attrs:
+                    raise ValidationError({field: 'Altere participantes exclusivamente por convites ou remoção autorizada.'})
+        else:
+            if 'criador' in attrs:
+                raise ValidationError({'criador': 'O criador é definido automaticamente.'})
+            if attrs.get('alunos'):
+                raise ValidationError({'alunos': 'Participantes entram somente após aceitar um convite.'})
+            current_professor = getattr(self.context['request'].user, 'professor_profile', None)
+            if not current_professor:
+                raise ValidationError({'professores': 'Somente professores podem criar equipes.'})
+            if any(prof.pk != current_professor.pk for prof in attrs.get('professores', [])):
+                raise ValidationError({'professores': 'Outros professores devem ser convidados após a criação.'})
+        return attrs
+
     image_perfil = SlugRelatedField(
         slug_field='attachment_key', queryset=Image.objects.all(), required=False, allow_null=True
     )
@@ -80,7 +99,19 @@ class EquipeSerializer(ModelSerializer):
         return representation
 
 
-class EquipeListRetrieveSerializer(ModelSerializer):
+class ProfessoresPorEntradaMixin:
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # O ID do vínculo é sequencial, ao contrário do UUID aleatório do professor.
+        ids = list(instance.professores.through.objects.filter(equipe_id=instance.pk)
+                   .order_by('pk').values_list('professor_id', flat=True))
+        ordem = {str(pk): index for index, pk in enumerate(ids)}
+        representation['professores'].sort(key=lambda professor: ordem[str(professor['id'])])
+        return representation
+
+
+class EquipeListRetrieveSerializer(ProfessoresPorEntradaMixin, ModelSerializer):
+    criador = ReadOnlyField(source='criador_id')
     image_perfil = ImageSerializer(read_only=True)
     professores = ProfessorEquipeSerializer(many=True, read_only=True)
     alunos = AlunoEquipeSerializer(many=True, read_only=True)
@@ -100,6 +131,7 @@ class EquipeListRetrieveSerializer(ModelSerializer):
         model = Equipe
         fields = [
             'id',
+            'criador',
             'nome',
             'descricao',
             'ativo',
@@ -114,7 +146,7 @@ class EquipeListRetrieveSerializer(ModelSerializer):
         ]
 
 
-class EquipeCardSerializer(ModelSerializer):
+class EquipeCardSerializer(ProfessoresPorEntradaMixin, ModelSerializer):
     image_perfil = ImageSerializer(read_only=True)
     professores = ProfessorCardSerializer(many=True, read_only=True)
     categorias = CategoriaCardSerializer(many=True, read_only=True)
@@ -145,6 +177,10 @@ class EquipeOpcaoSerializer(ModelSerializer):
         fields = ['id', 'nome', 'image_perfil']
 
 
+class TransferirOwnerSerializer(Serializer):
+    professor = UUIDField()
+
+
 class SairEquipeSerializer(Serializer):
     def validate(self, attrs):
         user = self.context['request'].user
@@ -157,6 +193,9 @@ class SairEquipeSerializer(Serializer):
                 professor = user.professor_profile
             except Professor.DoesNotExist:
                 raise ValidationError('Usuário não é aluno nem professor.')
+
+            if equipe.criador_id == professor.pk:
+                raise ValidationError('O OWNER precisa transferir a responsabilidade antes de sair da equipe.')
 
             if not equipe.professores.filter(pk=professor.pk).exists():
                 raise ValidationError('Professor não pertence a esta equipe.')

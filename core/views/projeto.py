@@ -2,6 +2,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from core.permissions_social import CanEditProject
 from core.models import Projeto
 from core.serializers import (
     ProjetoDetailWithPostsSerializer,
@@ -13,8 +15,9 @@ from core.serializers import (
 
 class ProjetoViewSet(ModelViewSet):
     queryset = Projeto.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly, CanEditProject]
 
-    http_method_names = ['get', 'post', 'put', 'delete']
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete']
 
     def get_queryset(self):
         queryset = super().get_queryset()

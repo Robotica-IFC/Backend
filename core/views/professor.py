@@ -1,4 +1,5 @@
 from rest_framework.permissions import AllowAny
+from rest_framework.filters import SearchFilter
 from rest_framework.viewsets import ModelViewSet
 
 from core.models import Professor
@@ -7,6 +8,8 @@ from core.serializers import ProfessorListSerializer, ProfessorRetrieveSerialize
 
 class ProfessorViewSet(ModelViewSet):
     queryset = Professor.objects.all()
+    filter_backends = [SearchFilter]
+    search_fields = ['user__name', 'user__username']
     serializer_class = ProfessorSerializer
     permission_classes = [AllowAny]
 

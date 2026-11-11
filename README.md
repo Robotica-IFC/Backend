@@ -113,6 +113,24 @@ As sugestões também estão registradas no Django Admin. Antes de usar o endpoi
 
 ## Comandos Úteis
 
+### Limites de formulários e notificações
+
+`GET /api/formularios/limites/` é público e retorna limites de campos extraídos dos serializers, além dos formatos de upload aceitos. O frontend usa essas regras para contadores e validações antes do envio nos formulários que adotam esse recurso. Login e cadastro de usuários mantêm o comportamento anterior.
+
+`GET /api/convites/recebidos/` lista somente convites pendentes do destinatário. Após aceitar ou recusar, o convite permanece no banco com seu status e deixa de aparecer nessa consulta.
+
+### OWNER das equipes
+
+O campo `criador` representa o OWNER atual. Em equipes novas ele é definido pelo professor que cria a equipe. Só o OWNER pode excluir a equipe, remover participantes ou transferir a responsabilidade para outro professor da mesma equipe.
+
+- `POST /api/equipes/<uuid>/transferir-owner/`, com `{"professor": "<uuid do professor>"}`: transfere o OWNER. O responsável anterior continua na equipe como professor.
+- `DELETE /api/equipes/<uuid>/`: exclui a equipe, convites, projetos, publicações, comentários, curtidas, sugestões e estoque com seus itens. As contas dos participantes são preservadas.
+- `DELETE /api/projetos/<id>/`: disponível aos professores da equipe; exclui o projeto e suas publicações, comentários e curtidas.
+
+No deploy, execute `pdm run python manage.py migrate` (o `build.sh` já executa a migração). A migração `0017_definir_owner_equipes_antigas` preenche somente equipes sem OWNER, escolhendo o professor com o primeiro registro de vínculo com a equipe. Equipes sem professores continuam sem OWNER; responsáveis já definidos ou transferidos são preservados.
+
+O array `professores` das respostas de equipes passa a seguir a mesma ordem dos registros de vínculo, em vez do UUID do professor. Não existe data de entrada no modelo antigo: vínculos recriados por importação ou inseridos em lote podem não representar a cronologia real. Transferir o OWNER não reordena os professores.
+
 - `pdm run dev`: Executa o servidor de desenvolvimento. Antes de executar o servidor, descobre o endereço IP da máquina e atualiza o arquivo `.env` com o endereço IP.
 - `pdm run migrate`: Executa as migrações do banco de dados. Antes de executar o `migrate`, executa o `makemigrations`. Depois de executar o `migrate`, executa o `graph_models`, atualizando o diagrama de classes dos modelos do projeto.
 - Para mais detalhes, consulte o arquivo `pyproject.toml`, na seção `[tool.pdm.scripts]`.

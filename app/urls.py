@@ -32,6 +32,7 @@ from core.views import (
     UserViewSet,
 )
 from core.views.equipe import EquipeViewSet
+from core.views.form_limits import FormLimitsView
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
@@ -50,6 +51,7 @@ router.register(r'projetos', ProjetoViewSet, basename='projetos')
 router.register(r'sugestoes-projetos', SugestaoProjetoViewSet, basename='sugestoes-projetos')
 
 urlpatterns = [
+    path('api/formularios/limites/', FormLimitsView.as_view(), name='form-limits'),
     path('api/verificar-email/', EmailVerificationView.as_view()),
     path('api/reenviar-codigo/', ResendVerificationCodeView.as_view()),
     path('admin/', admin.site.urls),

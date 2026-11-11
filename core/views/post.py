@@ -1,12 +1,13 @@
+from django.db.models import Count
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.response import Response
 
-from core.models import Post, PostLike, PostComment
+from core.models import Post, PostComment, PostLike
 from core.permissions_social import CanEditPost, is_team_member
 from core.serializers import PostCreateSerializer, PostListRetrieveSerializer
-from core.serializers.post import PostCommentSerializer
+from core.serializers.post import PostCommentSerializer, PostDestaqueSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -21,11 +22,18 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.action in {'list', 'retrieve'}:
+        if self.action in {'list', 'retrieve', 'destaques'}:
             queryset = queryset.select_related(
                 'aluno_criador__user', 'professor_criador__user'
             ).prefetch_related('images__image', 'comments__user', 'likes')
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def destaques(self, request):
+        posts = self.get_queryset().select_related('projeto__equipe__image_perfil').annotate(
+            total_curtidas=Count('likes', distinct=True),
+        ).order_by('-total_curtidas', '-criado_em', '-pk')[:3]
+        return Response(PostDestaqueSerializer(posts, many=True, context=self.get_serializer_context()).data)
 
     def perform_create(self, serializer):
         projeto = serializer.validated_data.get('projeto')

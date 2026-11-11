@@ -2,6 +2,7 @@ from rest_framework.serializers import CharField, ModelSerializer, ReadOnlyField
 
 from core.models import Aluno, Professor, Projeto
 from core.serializers.post import PostListRetrieveSerializer
+from uploader.helpers.files import get_file_url
 from uploader.models import Image
 
 
@@ -55,6 +56,23 @@ class ProjetoListSerializer(ModelSerializer):
             'sugestao',
             'posts',
         )
+
+
+class ProjetoDestaqueSerializer(ProjetoListSerializer):
+    equipe_id = ReadOnlyField()
+    equipe_views = ReadOnlyField(source='equipe.views')
+    equipe_image = SerializerMethodField()
+
+    class Meta(ProjetoListSerializer.Meta):
+        fields = (
+            'id', 'titulo', 'desc_curta', 'data_criacao', 'equipe', 'equipe_id',
+            'equipe_views', 'equipe_image', 'image_perfil', 'status', 'sugestao',
+        )
+
+    def get_equipe_image(self, obj):
+        if obj.equipe.image_perfil:
+            return get_file_url(obj.equipe.image_perfil.file, self.context.get('request'))
+        return None
 
 
 class ProjetoRetrieveSerializer(ModelSerializer):

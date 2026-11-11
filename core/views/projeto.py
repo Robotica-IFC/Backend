@@ -1,16 +1,18 @@
+from django.db.models import OuterRef, Subquery
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from core.models import Equipe, Projeto
 from core.permissions_social import CanEditProject
-from core.models import Projeto
 from core.serializers import (
     ProjetoDetailWithPostsSerializer,
     ProjetoListSerializer,
     ProjetoRetrieveSerializer,
     ProjetoSerializer,
 )
+from core.serializers.projeto import ProjetoDestaqueSerializer
 
 
 class ProjetoViewSet(ModelViewSet):
@@ -37,6 +39,17 @@ class ProjetoViewSet(ModelViewSet):
         elif self.action == 'get_projeto_com_posts':
             return ProjetoDetailWithPostsSerializer
         return ProjetoSerializer
+
+    @action(detail=False, methods=['get'])
+    def destaques(self, request):
+        equipes = Equipe.objects.order_by('-views', 'pk').values('pk')[:3]
+        mais_recente = Projeto.objects.filter(equipe_id=OuterRef('equipe_id')).order_by(
+            '-data_criacao', '-pk',
+        ).values('pk')[:1]
+        projetos = Projeto.objects.filter(
+            equipe_id__in=Subquery(equipes), pk=Subquery(mais_recente),
+        ).select_related('equipe__image_perfil', 'image_perfil').order_by('-equipe__views', 'equipe_id')
+        return Response(ProjetoDestaqueSerializer(projetos, many=True, context=self.get_serializer_context()).data)
 
     @action(detail=True, methods=['get'], url_path='posts')
     def get_projeto_com_posts(self, request, pk=None):

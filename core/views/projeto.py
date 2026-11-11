@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import OuterRef, Subquery
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -20,6 +21,10 @@ class ProjetoViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, CanEditProject]
 
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        serializer.save()
 
     def get_queryset(self):
         queryset = super().get_queryset()

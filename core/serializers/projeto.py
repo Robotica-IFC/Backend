@@ -33,6 +33,13 @@ class AlunoSimpleSerializer(ModelSerializer):
 
 
 class ProjetoSerializer(ModelSerializer):
+    def create(self, validated_data):
+        projeto = Projeto(**validated_data)
+        request = self.context.get('request')
+        projeto._autor_notificacao_id = request.user.pk if request else None
+        projeto.save()
+        return projeto
+
     class Meta:
         model = Projeto
         fields = '__all__'

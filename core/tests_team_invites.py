@@ -85,3 +85,40 @@ class ConvitesEquipeTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertTrue(self.team.alunos.filter(pk=self.student.pk).exists())
+
+    def test_join_request_requires_teacher_approval(self):
+        self.client.force_authenticate(self.other_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/solicitar/')
+        self.assertEqual(response.status_code, 201)
+        request_id = response.data['id']
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())
+        self.assertEqual(self.client.post(f'/api/equipes/{self.team.pk}/solicitar/').status_code, 400)
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.post(
+            f'/api/equipes/{self.team.pk}/solicitacoes/{request_id}/responder/',
+            {'aceitar': True}, format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.team.alunos.filter(pk=self.other.pk).exists())
+
+    def test_outsider_cannot_review_join_request(self):
+        self.client.force_authenticate(self.other_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/solicitar/')
+        request_id = response.data['id']
+        self.assertEqual(self.client.get(f'/api/equipes/{self.team.pk}/solicitacoes/').status_code, 403)
+        self.assertEqual(self.client.post(
+            f'/api/equipes/{self.team.pk}/solicitacoes/{request_id}/responder/',
+            {'aceitar': True}, format='json'
+        ).status_code, 403)
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())
+
+    def test_teacher_can_reject_join_request(self):
+        self.client.force_authenticate(self.other_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/solicitar/')
+        self.client.force_authenticate(self.owner_user)
+        response = self.client.post(
+            f"/api/equipes/{self.team.pk}/solicitacoes/{response.data['id']}/responder/",
+            {'aceitar': False}, format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())

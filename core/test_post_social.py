@@ -81,3 +81,28 @@ class PostSocialTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.post.refresh_from_db()
         self.assertEqual(self.post.formato_imagem, 'RETANGULAR')
+
+    def test_teacher_can_edit_students_post(self):
+        post = Post.objects.create(projeto=self.project, aluno_criador=self.student, legenda='Aluno')
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.patch(f'/api/posts/{post.pk}/', {'legenda': 'Revisado pelo professor'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_student_can_edit_only_own_post_while_member(self):
+        own_post = Post.objects.create(projeto=self.project, aluno_criador=self.student, legenda='Meu post')
+        self.client.force_authenticate(self.student_user)
+        self.assertEqual(self.client.patch(f'/api/posts/{own_post.pk}/', {'legenda': 'Atualizado'}).status_code, 200)
+        self.assertEqual(self.client.patch(f'/api/posts/{self.post.pk}/', {'legenda': 'Não autorizado'}).status_code, 403)
+
+    def test_student_loses_edit_permission_after_leaving(self):
+        own_post = Post.objects.create(projeto=self.project, aluno_criador=self.student, legenda='Meu post')
+        self.team.alunos.remove(self.student)
+        self.client.force_authenticate(self.student_user)
+        response = self.client.patch(f'/api/posts/{own_post.pk}/', {'legenda': 'Proibido'})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.client.get(f'/api/posts/{own_post.pk}/').data['pode_editar'], False)
+
+    def test_teacher_loses_permission_after_leaving(self):
+        self.team.professores.remove(self.teacher)
+        self.client.force_authenticate(self.teacher_user)
+        self.assertEqual(self.client.patch(f'/api/posts/{self.post.pk}/', {'legenda': 'Proibido'}).status_code, 403)

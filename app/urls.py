@@ -31,9 +31,11 @@ from core.views import (
     UserViewSet,
 )
 from core.views.equipe import EquipeViewSet
+from core.views.notificacao import NotificacaoViewSet
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
+router.register(r'notificacoes', NotificacaoViewSet, basename='notificacoes')
 
 router.register(r'alunos', AlunoViewSet, basename='alunos')
 router.register(r'categorias', CategoriaViewSet, basename='categorias')

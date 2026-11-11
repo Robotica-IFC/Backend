@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -15,6 +16,10 @@ class ProjetoViewSet(ModelViewSet):
     queryset = Projeto.objects.all()
 
     http_method_names = ['get', 'post', 'put', 'delete']
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        serializer.save()
 
     def get_queryset(self):
         queryset = super().get_queryset()

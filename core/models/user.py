@@ -52,6 +52,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_('Indica que este usuário pode acessar o Admin.'),
     )
 
+    email_verified = models.BooleanField(default=False)
+    verification_code_hash = models.CharField(max_length=128, blank=True, default='')
+    verification_code_created_at = models.DateTimeField(null=True, blank=True)
+    verification_attempts = models.PositiveSmallIntegerField(default=0)
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'

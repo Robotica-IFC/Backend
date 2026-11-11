@@ -7,5 +7,8 @@ from .estoque import Estoque, Item
 from .instituicao import Instituicao
 from .professor import Professor
 from .projeto import Projeto
-from .post import Post, PostImage
+from .post import Post, PostImage, PostLike, PostComment
 from .user import User
+from .sugestao_projeto import SugestaoProjeto
+
+from .solicitacao_equipe import SolicitacaoEquipe

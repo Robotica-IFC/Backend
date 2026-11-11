@@ -3,9 +3,16 @@ from .categoria import CategoriaSerializer
 from .convite import ConviteCreateSerializer, ConviteListRetrieveSerializer, ConviteSerializer
 from .estado import EstadoSerializer
 from .estoque import EstoqueSerializer, ItemSerializer
-from .equipe import EquipeSerializer, EquipeListRetrieveSerializer, EquipeCardSerializer, SairEquipeSerializer
+from .equipe import (
+    EquipeSerializer,
+    EquipeListRetrieveSerializer,
+    EquipeCardSerializer,
+    EquipeOpcaoSerializer,
+    SairEquipeSerializer,
+)
 from .instituicao import InstituicaoSerializer, InstituicaoListRetrieveSerializer
 from .professor import ProfessorSerializer, ProfessorListSerializer, ProfessorRetrieveSerializer
 from .projeto import ProjetoSerializer, ProjetoListSerializer, ProjetoRetrieveSerializer, ProjetoDetailWithPostsSerializer
 from .post import PostCreateSerializer, PostListRetrieveSerializer
 from .user import UserRegistrationSerializer, UserSerializer
+from .sugestao_projeto import SugestaoProjetoSerializer, SugestaoProjetoListRetrieveSerializer

@@ -10,3 +10,4 @@ from .professor import ProfessorViewSet
 from .projeto import ProjetoViewSet
 from .post import PostViewSet
 from .user import UserRegistrationView, UserViewSet
+from .sugestao_projeto import SugestaoProjetoViewSet

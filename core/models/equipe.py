@@ -12,6 +12,7 @@ class Equipe(models.Model):
     descricao = models.CharField(max_length=1000, blank=True, null=True)
     ativo = models.BooleanField(default=True)
     views = models.IntegerField(default=0)
+    criador = models.ForeignKey('core.Professor', on_delete=models.PROTECT, null=True, blank=True, related_name='equipes_criadas')
 
     image_perfil = models.ForeignKey(
         Image,

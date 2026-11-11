@@ -1,3 +1,4 @@
+from core.views.user import EmailVerificationView, ResendVerificationCodeView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -26,10 +27,12 @@ from core.views import (
     PostViewSet,
     ProfessorViewSet,
     ProjetoViewSet,
+    SugestaoProjetoViewSet,
     UserRegistrationView,
     UserViewSet,
 )
 from core.views.equipe import EquipeViewSet
+from core.views.form_limits import FormLimitsView
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
@@ -45,8 +48,12 @@ router.register(r'usuarios', UserViewSet, basename='usuarios')
 router.register(r'posts', PostViewSet, basename='posts')
 router.register(r'professores', ProfessorViewSet, basename='professores')
 router.register(r'projetos', ProjetoViewSet, basename='projetos')
+router.register(r'sugestoes-projetos', SugestaoProjetoViewSet, basename='sugestoes-projetos')
 
 urlpatterns = [
+    path('api/formularios/limites/', FormLimitsView.as_view(), name='form-limits'),
+    path('api/verificar-email/', EmailVerificationView.as_view()),
+    path('api/reenviar-codigo/', ResendVerificationCodeView.as_view()),
     path('admin/', admin.site.urls),
     # OpenAPI 3
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
@@ -69,4 +76,4 @@ path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'), p
     # API
     path('api/', include(router.urls)),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_ENDPOINT, document_root=settings.MEDIA_ROOT)

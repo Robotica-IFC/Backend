@@ -52,6 +52,7 @@ class ProjetoListSerializer(ModelSerializer):
             'instituicao',
             'image_perfil',
             'status',
+            'sugestao',
             'posts',
         )
 

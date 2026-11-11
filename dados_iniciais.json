@@ -1,0 +1,1355 @@
+[
+  {
+    "model": "core.instituicao",
+    "pk": "4799ecac-cb0a-5693-9296-75ccfe95fa4b",
+    "fields": {
+      "nome": "Instituto Federal Catarinense - Campus Araquari",
+      "sigla": "IFC",
+      "cidade": "Araquari",
+      "estado": "SC",
+      "logo": null
+    }
+  },
+  {
+    "model": "core.instituicao",
+    "pk": "a4f7ad86-60a7-52a8-a63f-f57e48951b1f",
+    "fields": {
+      "nome": "Escola Técnica Horizonte (Demo)",
+      "sigla": "ETH",
+      "cidade": "Joinville",
+      "estado": "SC",
+      "logo": null
+    }
+  },
+  {
+    "model": "core.instituicao",
+    "pk": "70d0a8bf-f309-55a8-8280-f044ac464329",
+    "fields": {
+      "nome": "Centro Educacional Inovação (Demo)",
+      "sigla": "CEI",
+      "cidade": "Florianópolis",
+      "estado": "SC",
+      "logo": null
+    }
+  },
+  {
+    "model": "core.instituicao",
+    "pk": "63f22707-6b78-5dc5-b887-d29d73d23d4e",
+    "fields": {
+      "nome": "Colégio Experimental do Vale (Demo)",
+      "sigla": "CEV",
+      "cidade": "Blumenau",
+      "estado": "SC",
+      "logo": null
+    }
+  },
+  {
+    "model": "core.estado",
+    "pk": 1,
+    "fields": {
+      "nome": "Santa Catarina",
+      "sigla": "SC"
+    }
+  },
+  {
+    "model": "core.estado",
+    "pk": 2,
+    "fields": {
+      "nome": "Paraná",
+      "sigla": "PR"
+    }
+  },
+  {
+    "model": "core.estado",
+    "pk": 3,
+    "fields": {
+      "nome": "Rio Grande do Sul",
+      "sigla": "RS"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 1,
+    "fields": {
+      "nome": "Robótica Educacional"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 2,
+    "fields": {
+      "nome": "Automação"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 3,
+    "fields": {
+      "nome": "Inteligência Artificial"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 4,
+    "fields": {
+      "nome": "Internet das Coisas"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 5,
+    "fields": {
+      "nome": "Programação"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 6,
+    "fields": {
+      "nome": "Eletrônica"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 7,
+    "fields": {
+      "nome": "Sustentabilidade"
+    }
+  },
+  {
+    "model": "core.categoria",
+    "pk": 8,
+    "fields": {
+      "nome": "Competição de Robôs"
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$WNvsGlTBn36GrDFK$KUX3MLAbA8mtFHygNBGP/MGYyDlAG6pU97xte+Eb0AY=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "mariana.costa@example.com",
+      "name": "Mariana Costa",
+      "username": "mariana.costa",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.professor",
+    "pk": "9a5e24f2-8722-575c-a5dc-2bfe0ad0b635",
+    "fields": {
+      "user": 1,
+      "cpf": "00000000001",
+      "descricao": "Professor(a) orientador(a) de projetos de robótica e tecnologia. Perfil demonstrativo 1.",
+      "telefone": "00000000000",
+      "data_nascimento": "1980-05-12",
+      "instituicao": "4799ecac-cb0a-5693-9296-75ccfe95fa4b",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_professor": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$-Ua3yWVFCkbf-vqK$N1CFYVB+WEJjZlnL/LGs1Ud/DvQ5WO1WOZk/zGdA8Bw=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "rafael.almeida@example.com",
+      "name": "Rafael Almeida",
+      "username": "rafael.almeida",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.professor",
+    "pk": "33e8dddd-cf5a-5e4c-92dd-addd6275592c",
+    "fields": {
+      "user": 2,
+      "cpf": "00000000002",
+      "descricao": "Professor(a) orientador(a) de projetos de robótica e tecnologia. Perfil demonstrativo 2.",
+      "telefone": "00000000000",
+      "data_nascimento": "1981-05-12",
+      "instituicao": "4799ecac-cb0a-5693-9296-75ccfe95fa4b",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_professor": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$8WcRlWEjNx0aN5BJ$rpeqAFx1Xp2yo5qc2o6qg0KvHnLcyZufc1/6DnCLyjk=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "camila.ferreira@example.com",
+      "name": "Camila Ferreira",
+      "username": "camila.ferreira",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.professor",
+    "pk": "d474edd4-d109-5499-8ea7-7ec2821215b8",
+    "fields": {
+      "user": 3,
+      "cpf": "00000000003",
+      "descricao": "Professor(a) orientador(a) de projetos de robótica e tecnologia. Perfil demonstrativo 3.",
+      "telefone": "00000000000",
+      "data_nascimento": "1982-05-12",
+      "instituicao": "a4f7ad86-60a7-52a8-a63f-f57e48951b1f",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_professor": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 4,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$YLqNxmVEM8hqDQXi$9Ui7gU7Fnkj+fAxuIczmyVp57FDR4tLKqPpxvXbkbmQ=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "pedro.nogueira@example.com",
+      "name": "Pedro Nogueira",
+      "username": "pedro.nogueira",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.professor",
+    "pk": "0162de3b-52d4-5ce0-998f-ee7c34438105",
+    "fields": {
+      "user": 4,
+      "cpf": "00000000004",
+      "descricao": "Professor(a) orientador(a) de projetos de robótica e tecnologia. Perfil demonstrativo 4.",
+      "telefone": "00000000000",
+      "data_nascimento": "1983-05-12",
+      "instituicao": "70d0a8bf-f309-55a8-8280-f044ac464329",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_professor": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$J3Kv7yJLhR0gP6Ff$rSnXW2t7TnTjqQM2j5CH65kG9SmQ6/D2ucHNoqxsTiU=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "lucas.martins@example.com",
+      "name": "Lucas Martins",
+      "username": "lucas.martins",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "eff48e47-670d-5c20-a2c3-0a2fbf12bb78",
+    "fields": {
+      "user": 5,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 1.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2008-02-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$w8cHqN3FOPZ6HM00$IZe1gzLZVGOYYLBrvRsbt3m2dHfsQYe/c2p5T7Xt1GQ=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "ana.lima@example.com",
+      "name": "Ana Beatriz Lima",
+      "username": "ana.lima",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "bafc9d4b-210f-560a-b0a2-da95737a1aa8",
+    "fields": {
+      "user": 6,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 2.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2009-03-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 7,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$Bh4cmJ1bUy9-NR10$thuB/fQBJA8DFYiBCH+kd5qt4UpQyzGk4CZMLSAaNRA=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "gabriel.souza@example.com",
+      "name": "Gabriel Souza",
+      "username": "gabriel.souza",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "0d759fae-0645-5f41-b920-f2172fc25143",
+    "fields": {
+      "user": 7,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 3.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2007-04-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 8,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$psOZ_jntvXJ-UQM3$ltN8rLGDZPhuSpgrWW4/KTiKxiT5evzDhGoF9vHy6Dc=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "julia.mendes@example.com",
+      "name": "Julia Mendes",
+      "username": "julia.mendes",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "b8ce9708-0d02-5c2a-aeba-96af4a8c9906",
+    "fields": {
+      "user": 8,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 4.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2008-05-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 9,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$-qD0TGAC1KQjMrwi$aMoPRXDt8OJB61QUOlNC4qIKB8DR76zJ0Yf48xLqgFE=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "mateus.oliveira@example.com",
+      "name": "Mateus Oliveira",
+      "username": "mateus.oliveira",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "f45d7058-3b19-5d21-80cb-543a8d57f30f",
+    "fields": {
+      "user": 9,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 5.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2009-06-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 10,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$nwi1bODGMEAExvpb$65498KmPCGC0mcovoTei32DRdEfQNVYWgi+Re4m8g2I=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "isabela.rocha@example.com",
+      "name": "Isabela Rocha",
+      "username": "isabela.rocha",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "13f343e1-d8c2-558c-bf67-5f4a15fc72f5",
+    "fields": {
+      "user": 10,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 6.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2007-07-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 11,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$CWQVZ91iwH0q-_iW$mTPtRWMQyCgZAviFDjRBdLDWb11ZHxmMPGUMjTAS2uQ=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "bruno.ribeiro@example.com",
+      "name": "Bruno Ribeiro",
+      "username": "bruno.ribeiro",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "e3565deb-9327-5798-ac5e-d27357e87785",
+    "fields": {
+      "user": 11,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 7.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2008-08-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.user",
+    "pk": 12,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$1A5CzVWNA1P7YLFO$9jC49FsPJlY3tRL+CeLyo7dg5oJV7U1HrURrTXCBVPs=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "larissa.santos@example.com",
+      "name": "Larissa Santos",
+      "username": "larissa.santos",
+      "is_active": true,
+      "is_staff": false,
+      "email_verified": true,
+      "verification_code_hash": "",
+      "verification_code_created_at": null,
+      "verification_attempts": 0,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "core.aluno",
+    "pk": "b4a7639e-9d16-506e-b527-b82f8048859f",
+    "fields": {
+      "user": 12,
+      "descricao": "Estudante interessado(a) em robótica, programação e projetos colaborativos. Perfil demonstrativo 8.",
+      "cpf": null,
+      "telefone": null,
+      "data_nascimento": "2009-01-15",
+      "ativo": true,
+      "email_verificado": true,
+      "imagem_perfil": null,
+      "is_aluno": true
+    }
+  },
+  {
+    "model": "core.equipe",
+    "pk": "cde1d230-fda1-50c4-9add-2688373280d0",
+    "fields": {
+      "nome": "Circuito Criativo",
+      "descricao": "Equipe demonstrativa de robótica Circuito Criativo, dedicada a oficinas, desafios e desenvolvimento de protótipos.",
+      "ativo": true,
+      "views": 12,
+      "image_perfil": null,
+      "categorias": [
+        1,
+        4,
+        5
+      ],
+      "professores": [
+        "9a5e24f2-8722-575c-a5dc-2bfe0ad0b635",
+        "33e8dddd-cf5a-5e4c-92dd-addd6275592c"
+      ],
+      "alunos": [
+        "eff48e47-670d-5c20-a2c3-0a2fbf12bb78",
+        "bafc9d4b-210f-560a-b0a2-da95737a1aa8",
+        "f45d7058-3b19-5d21-80cb-543a8d57f30f",
+        "13f343e1-d8c2-558c-bf67-5f4a15fc72f5"
+      ],
+      "instituicao": "4799ecac-cb0a-5693-9296-75ccfe95fa4b"
+    }
+  },
+  {
+    "model": "core.equipe",
+    "pk": "98cfffb4-def3-5279-bdaf-09c67806f35e",
+    "fields": {
+      "nome": "Engrenagem Livre",
+      "descricao": "Equipe demonstrativa de robótica Engrenagem Livre, dedicada a oficinas, desafios e desenvolvimento de protótipos.",
+      "ativo": true,
+      "views": 24,
+      "image_perfil": null,
+      "categorias": [
+        1,
+        2,
+        6
+      ],
+      "professores": [
+        "d474edd4-d109-5499-8ea7-7ec2821215b8"
+      ],
+      "alunos": [
+        "0d759fae-0645-5f41-b920-f2172fc25143",
+        "b8ce9708-0d02-5c2a-aeba-96af4a8c9906",
+        "e3565deb-9327-5798-ac5e-d27357e87785"
+      ],
+      "instituicao": "a4f7ad86-60a7-52a8-a63f-f57e48951b1f"
+    }
+  },
+  {
+    "model": "core.equipe",
+    "pk": "aea40789-e02d-5abd-81eb-b5390222e3af",
+    "fields": {
+      "nome": "Robôs do Futuro",
+      "descricao": "Equipe demonstrativa de robótica Robôs do Futuro, dedicada a oficinas, desafios e desenvolvimento de protótipos.",
+      "ativo": true,
+      "views": 36,
+      "image_perfil": null,
+      "categorias": [
+        2,
+        3,
+        4
+      ],
+      "professores": [
+        "0162de3b-52d4-5ce0-998f-ee7c34438105"
+      ],
+      "alunos": [
+        "f45d7058-3b19-5d21-80cb-543a8d57f30f",
+        "13f343e1-d8c2-558c-bf67-5f4a15fc72f5",
+        "b4a7639e-9d16-506e-b527-b82f8048859f"
+      ],
+      "instituicao": "70d0a8bf-f309-55a8-8280-f044ac464329"
+    }
+  },
+  {
+    "model": "core.equipe",
+    "pk": "6128253b-6b39-53fe-b023-a01e11d77956",
+    "fields": {
+      "nome": "InovaTech Vale",
+      "descricao": "Equipe demonstrativa de robótica InovaTech Vale, dedicada a oficinas, desafios e desenvolvimento de protótipos.",
+      "ativo": true,
+      "views": 48,
+      "image_perfil": null,
+      "categorias": [
+        3,
+        5,
+        7
+      ],
+      "professores": [
+        "33e8dddd-cf5a-5e4c-92dd-addd6275592c"
+      ],
+      "alunos": [
+        "e3565deb-9327-5798-ac5e-d27357e87785",
+        "b4a7639e-9d16-506e-b527-b82f8048859f"
+      ],
+      "instituicao": "63f22707-6b78-5dc5-b887-d29d73d23d4e"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 1,
+    "fields": {
+      "titulo": "Robo Seguidor de Linha",
+      "desc_curta": "Robô autônomo para seguir trajetos.",
+      "descricao": "Robô autônomo para seguir trajetos. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-02-02",
+      "sugestao": false,
+      "image_perfil": null,
+      "equipe": "cde1d230-fda1-50c4-9add-2688373280d0",
+      "status": "CONCLUIDO"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 2,
+    "fields": {
+      "titulo": "Estufa Inteligente",
+      "desc_curta": "Controle automático de uma pequena estufa.",
+      "descricao": "Controle automático de uma pequena estufa. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-03-03",
+      "sugestao": true,
+      "image_perfil": null,
+      "equipe": "cde1d230-fda1-50c4-9add-2688373280d0",
+      "status": "EM_ANDAMENTO"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 3,
+    "fields": {
+      "titulo": "Braço Robótico",
+      "desc_curta": "Braço com motores e controle eletrônico.",
+      "descricao": "Braço com motores e controle eletrônico. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-04-04",
+      "sugestao": false,
+      "image_perfil": null,
+      "equipe": "98cfffb4-def3-5279-bdaf-09c67806f35e",
+      "status": "EM_ANDAMENTO"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 4,
+    "fields": {
+      "titulo": "Estação Meteorológica",
+      "desc_curta": "Coleta de temperatura e umidade.",
+      "descricao": "Coleta de temperatura e umidade. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-05-05",
+      "sugestao": true,
+      "image_perfil": null,
+      "equipe": "98cfffb4-def3-5279-bdaf-09c67806f35e",
+      "status": "CONCLUIDO"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 5,
+    "fields": {
+      "titulo": "Carrinho Autônomo",
+      "desc_curta": "Protótipo com desvio de obstáculos.",
+      "descricao": "Protótipo com desvio de obstáculos. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-06-06",
+      "sugestao": false,
+      "image_perfil": null,
+      "equipe": "aea40789-e02d-5abd-81eb-b5390222e3af",
+      "status": "EM_ANDAMENTO"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 6,
+    "fields": {
+      "titulo": "Lixeira Inteligente",
+      "desc_curta": "Separação assistida de resíduos.",
+      "descricao": "Separação assistida de resíduos. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-07-07",
+      "sugestao": true,
+      "image_perfil": null,
+      "equipe": "6128253b-6b39-53fe-b023-a01e11d77956",
+      "status": "CANCELADO"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 7,
+    "fields": {
+      "titulo": "Monitor de Energia",
+      "desc_curta": "Sistema de monitoramento de consumo.",
+      "descricao": "Sistema de monitoramento de consumo. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-08-08",
+      "sugestao": false,
+      "image_perfil": null,
+      "equipe": "6128253b-6b39-53fe-b023-a01e11d77956",
+      "status": "EM_ANDAMENTO"
+    }
+  },
+  {
+    "model": "core.projeto",
+    "pk": 8,
+    "fields": {
+      "titulo": "Robo Sumô",
+      "desc_curta": "Robô para disputa em arena.",
+      "descricao": "Robô para disputa em arena. Projeto de demonstração criado para testar o portal de robótica, incluindo planejamento, montagem, programação e apresentação de resultados.",
+      "data_criacao": "2026-09-09",
+      "sugestao": true,
+      "image_perfil": null,
+      "equipe": "aea40789-e02d-5abd-81eb-b5390222e3af",
+      "status": "EM_ANDAMENTO"
+    }
+  },
+  {
+    "model": "core.estoque",
+    "pk": 1,
+    "fields": {
+      "equipe": "cde1d230-fda1-50c4-9add-2688373280d0"
+    }
+  },
+  {
+    "model": "core.estoque",
+    "pk": 2,
+    "fields": {
+      "equipe": "98cfffb4-def3-5279-bdaf-09c67806f35e"
+    }
+  },
+  {
+    "model": "core.estoque",
+    "pk": 3,
+    "fields": {
+      "equipe": "aea40789-e02d-5abd-81eb-b5390222e3af"
+    }
+  },
+  {
+    "model": "core.estoque",
+    "pk": 4,
+    "fields": {
+      "equipe": "6128253b-6b39-53fe-b023-a01e11d77956"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 1,
+    "fields": {
+      "estoque": 1,
+      "nome": "Arduino Uno",
+      "quantidade": 8,
+      "descricao": "Componente de demonstração para atividades de robótica: Arduino Uno.",
+      "imagem": null,
+      "categoria": "MICROCONTROLADORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 2,
+    "fields": {
+      "estoque": 2,
+      "nome": "ESP32",
+      "quantidade": 12,
+      "descricao": "Componente de demonstração para atividades de robótica: ESP32.",
+      "imagem": null,
+      "categoria": "MICROCONTROLADORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 3,
+    "fields": {
+      "estoque": 3,
+      "nome": "Sensor ultrassônico HC-SR04",
+      "quantidade": 18,
+      "descricao": "Componente de demonstração para atividades de robótica: Sensor ultrassônico HC-SR04.",
+      "imagem": null,
+      "categoria": "SENSORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 4,
+    "fields": {
+      "estoque": 4,
+      "nome": "Sensor de temperatura DHT22",
+      "quantidade": 10,
+      "descricao": "Componente de demonstração para atividades de robótica: Sensor de temperatura DHT22.",
+      "imagem": null,
+      "categoria": "SENSORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 5,
+    "fields": {
+      "estoque": 1,
+      "nome": "Motor DC 6V",
+      "quantidade": 20,
+      "descricao": "Componente de demonstração para atividades de robótica: Motor DC 6V.",
+      "imagem": null,
+      "categoria": "ATUADORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 6,
+    "fields": {
+      "estoque": 2,
+      "nome": "Servo motor SG90",
+      "quantidade": 15,
+      "descricao": "Componente de demonstração para atividades de robótica: Servo motor SG90.",
+      "imagem": null,
+      "categoria": "ATUADORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 7,
+    "fields": {
+      "estoque": 3,
+      "nome": "Protoboard 830 pontos",
+      "quantidade": 9,
+      "descricao": "Componente de demonstração para atividades de robótica: Protoboard 830 pontos.",
+      "imagem": null,
+      "categoria": "ELETRONICA"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 8,
+    "fields": {
+      "estoque": 4,
+      "nome": "Resistor 220 ohms",
+      "quantidade": 150,
+      "descricao": "Componente de demonstração para atividades de robótica: Resistor 220 ohms.",
+      "imagem": null,
+      "categoria": "ELETRONICA"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 9,
+    "fields": {
+      "estoque": 1,
+      "nome": "Chassi 2WD",
+      "quantidade": 6,
+      "descricao": "Componente de demonstração para atividades de robótica: Chassi 2WD.",
+      "imagem": null,
+      "categoria": "ESTRUTURA"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 10,
+    "fields": {
+      "estoque": 2,
+      "nome": "Bateria 18650",
+      "quantidade": 24,
+      "descricao": "Componente de demonstração para atividades de robótica: Bateria 18650.",
+      "imagem": null,
+      "categoria": "ALIMENTACAO"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 11,
+    "fields": {
+      "estoque": 3,
+      "nome": "Cabos jumper",
+      "quantidade": 200,
+      "descricao": "Componente de demonstração para atividades de robótica: Cabos jumper.",
+      "imagem": null,
+      "categoria": "CABEAMENTO"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 12,
+    "fields": {
+      "estoque": 4,
+      "nome": "Multímetro digital",
+      "quantidade": 4,
+      "descricao": "Componente de demonstração para atividades de robótica: Multímetro digital.",
+      "imagem": null,
+      "categoria": "FERRAMENTAS"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 13,
+    "fields": {
+      "estoque": 1,
+      "nome": "Filamento PLA 1kg",
+      "quantidade": 5,
+      "descricao": "Componente de demonstração para atividades de robótica: Filamento PLA 1kg.",
+      "imagem": null,
+      "categoria": "IMPRESSAO_3D"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 14,
+    "fields": {
+      "estoque": 2,
+      "nome": "Parafuso M3",
+      "quantidade": 300,
+      "descricao": "Componente de demonstração para atividades de robótica: Parafuso M3.",
+      "imagem": null,
+      "categoria": "FIXACAO"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 15,
+    "fields": {
+      "estoque": 3,
+      "nome": "Raspberry Pi Pico",
+      "quantidade": 7,
+      "descricao": "Componente de demonstração para atividades de robótica: Raspberry Pi Pico.",
+      "imagem": null,
+      "categoria": "MICROCONTROLADORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 16,
+    "fields": {
+      "estoque": 4,
+      "nome": "Sensor de luminosidade LDR",
+      "quantidade": 50,
+      "descricao": "Componente de demonstração para atividades de robótica: Sensor de luminosidade LDR.",
+      "imagem": null,
+      "categoria": "SENSORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 17,
+    "fields": {
+      "estoque": 1,
+      "nome": "Driver de motor L298N",
+      "quantidade": 10,
+      "descricao": "Componente de demonstração para atividades de robótica: Driver de motor L298N.",
+      "imagem": null,
+      "categoria": "ATUADORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 18,
+    "fields": {
+      "estoque": 2,
+      "nome": "Módulo relé 5V",
+      "quantidade": 8,
+      "descricao": "Componente de demonstração para atividades de robótica: Módulo relé 5V.",
+      "imagem": null,
+      "categoria": "ELETRONICA"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 19,
+    "fields": {
+      "estoque": 3,
+      "nome": "Fonte 12V",
+      "quantidade": 5,
+      "descricao": "Componente de demonstração para atividades de robótica: Fonte 12V.",
+      "imagem": null,
+      "categoria": "ALIMENTACAO"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 20,
+    "fields": {
+      "estoque": 4,
+      "nome": "Conector JST",
+      "quantidade": 40,
+      "descricao": "Componente de demonstração para atividades de robótica: Conector JST.",
+      "imagem": null,
+      "categoria": "CABEAMENTO"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 21,
+    "fields": {
+      "estoque": 1,
+      "nome": "Roda de borracha",
+      "quantidade": 16,
+      "descricao": "Componente de demonstração para atividades de robótica: Roda de borracha.",
+      "imagem": null,
+      "categoria": "ESTRUTURA"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 22,
+    "fields": {
+      "estoque": 2,
+      "nome": "Ferro de solda",
+      "quantidade": 3,
+      "descricao": "Componente de demonstração para atividades de robótica: Ferro de solda.",
+      "imagem": null,
+      "categoria": "FERRAMENTAS"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 23,
+    "fields": {
+      "estoque": 3,
+      "nome": "Sensor infravermelho",
+      "quantidade": 12,
+      "descricao": "Componente de demonstração para atividades de robótica: Sensor infravermelho.",
+      "imagem": null,
+      "categoria": "SENSORES"
+    }
+  },
+  {
+    "model": "core.item",
+    "pk": 24,
+    "fields": {
+      "estoque": 4,
+      "nome": "Kit de engrenagens",
+      "quantidade": 5,
+      "descricao": "Componente de demonstração para atividades de robótica: Kit de engrenagens.",
+      "imagem": null,
+      "categoria": "ESTRUTURA"
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 1,
+    "fields": {
+      "legenda": "Protótipo do seguidor de linha concluído! Confira os testes iniciais.",
+      "criado_em": "2026-10-02T14:30:00-03:00",
+      "aluno_criador": null,
+      "professor_criador": "9a5e24f2-8722-575c-a5dc-2bfe0ad0b635",
+      "projeto": 1
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 2,
+    "fields": {
+      "legenda": "Hoje testamos sensores e ajustamos o controle dos motores.",
+      "criado_em": "2026-10-03T14:30:00-03:00",
+      "aluno_criador": "eff48e47-670d-5c20-a2c3-0a2fbf12bb78",
+      "professor_criador": null,
+      "projeto": 1
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 3,
+    "fields": {
+      "legenda": "Montagem da estufa inteligente em andamento.",
+      "criado_em": "2026-10-04T14:30:00-03:00",
+      "aluno_criador": "bafc9d4b-210f-560a-b0a2-da95737a1aa8",
+      "professor_criador": null,
+      "projeto": 2
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 4,
+    "fields": {
+      "legenda": "Nossa equipe iniciou a impressão das peças do braço robótico.",
+      "criado_em": "2026-10-05T14:30:00-03:00",
+      "aluno_criador": "0d759fae-0645-5f41-b920-f2172fc25143",
+      "professor_criador": null,
+      "projeto": 3
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 5,
+    "fields": {
+      "legenda": "Resultados da estação meteorológica disponíveis para consulta.",
+      "criado_em": "2026-10-06T14:30:00-03:00",
+      "aluno_criador": null,
+      "professor_criador": "d474edd4-d109-5499-8ea7-7ec2821215b8",
+      "projeto": 4
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 6,
+    "fields": {
+      "legenda": "Primeiros testes de navegação do carrinho autônomo.",
+      "criado_em": "2026-10-07T14:30:00-03:00",
+      "aluno_criador": "f45d7058-3b19-5d21-80cb-543a8d57f30f",
+      "professor_criador": null,
+      "projeto": 5
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 7,
+    "fields": {
+      "legenda": "Oficina de programação e eletrônica realizada com a equipe.",
+      "criado_em": "2026-10-08T14:30:00-03:00",
+      "aluno_criador": null,
+      "professor_criador": "0162de3b-52d4-5ce0-998f-ee7c34438105",
+      "projeto": 5
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 8,
+    "fields": {
+      "legenda": "Experimentando sensores para o monitoramento de energia.",
+      "criado_em": "2026-10-09T14:30:00-03:00",
+      "aluno_criador": "e3565deb-9327-5798-ac5e-d27357e87785",
+      "professor_criador": null,
+      "projeto": 7
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 9,
+    "fields": {
+      "legenda": "Treinamento de montagem do robô sumô.",
+      "criado_em": "2026-10-10T14:30:00-03:00",
+      "aluno_criador": "13f343e1-d8c2-558c-bf67-5f4a15fc72f5",
+      "professor_criador": null,
+      "projeto": 8
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 10,
+    "fields": {
+      "legenda": "Novos componentes chegaram ao laboratório!",
+      "criado_em": "2026-10-11T14:30:00-03:00",
+      "aluno_criador": "b8ce9708-0d02-5c2a-aeba-96af4a8c9906",
+      "professor_criador": null,
+      "projeto": 2
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 11,
+    "fields": {
+      "legenda": "Apresentação de protótipos para a comunidade escolar.",
+      "criado_em": "2026-10-12T14:30:00-03:00",
+      "aluno_criador": null,
+      "professor_criador": "d474edd4-d109-5499-8ea7-7ec2821215b8",
+      "projeto": 3
+    }
+  },
+  {
+    "model": "core.post",
+    "pk": 12,
+    "fields": {
+      "legenda": "Divulgando oportunidades para colaboração nos projetos.",
+      "criado_em": "2026-10-13T14:30:00-03:00",
+      "aluno_criador": "b4a7639e-9d16-506e-b527-b82f8048859f",
+      "professor_criador": null,
+      "projeto": 7
+    }
+  },
+  {
+    "model": "core.sugestaoprojeto",
+    "pk": 1,
+    "fields": {
+      "titulo": "Robô reciclador",
+      "descricao": "Criar um protótipo que identifique e separe materiais recicláveis.",
+      "criado_em": "2026-10-11T10:00:00-03:00",
+      "anonimo": false,
+      "equipe": "cde1d230-fda1-50c4-9add-2688373280d0",
+      "autor": 5,
+      "anexos": []
+    }
+  },
+  {
+    "model": "core.sugestaoprojeto",
+    "pk": 2,
+    "fields": {
+      "titulo": "Irrigação automática",
+      "descricao": "Desenvolver um sistema de irrigação com sensor de umidade.",
+      "criado_em": "2026-10-12T10:00:00-03:00",
+      "anonimo": true,
+      "equipe": "cde1d230-fda1-50c4-9add-2688373280d0",
+      "autor": null,
+      "anexos": []
+    }
+  },
+  {
+    "model": "core.sugestaoprojeto",
+    "pk": 3,
+    "fields": {
+      "titulo": "Mapa acessível",
+      "descricao": "Produzir um dispositivo de navegação acessível com sensores.",
+      "criado_em": "2026-10-13T10:00:00-03:00",
+      "anonimo": false,
+      "equipe": "98cfffb4-def3-5279-bdaf-09c67806f35e",
+      "autor": 8,
+      "anexos": []
+    }
+  },
+  {
+    "model": "core.sugestaoprojeto",
+    "pk": 4,
+    "fields": {
+      "titulo": "Carrinho solar",
+      "descricao": "Testar um veículo em escala reduzida alimentado por energia solar.",
+      "criado_em": "2026-10-14T10:00:00-03:00",
+      "anonimo": false,
+      "equipe": "aea40789-e02d-5abd-81eb-b5390222e3af",
+      "autor": 9,
+      "anexos": []
+    }
+  },
+  {
+    "model": "core.sugestaoprojeto",
+    "pk": 5,
+    "fields": {
+      "titulo": "Horta conectada",
+      "descricao": "Monitorar uma horta escolar por meio de sensores sem fio.",
+      "criado_em": "2026-10-15T10:00:00-03:00",
+      "anonimo": true,
+      "equipe": "6128253b-6b39-53fe-b023-a01e11d77956",
+      "autor": null,
+      "anexos": []
+    }
+  },
+  {
+    "model": "core.sugestaoprojeto",
+    "pk": 6,
+    "fields": {
+      "titulo": "Oficina maker",
+      "descricao": "Organizar oficinas introdutórias de eletrônica para estudantes.",
+      "criado_em": "2026-10-16T10:00:00-03:00",
+      "anonimo": false,
+      "equipe": "98cfffb4-def3-5279-bdaf-09c67806f35e",
+      "autor": 7,
+      "anexos": []
+    }
+  },
+  {
+    "model": "core.convite",
+    "pk": 1,
+    "fields": {
+      "convidante": "9a5e24f2-8722-575c-a5dc-2bfe0ad0b635",
+      "professor": null,
+      "aluno": "0d759fae-0645-5f41-b920-f2172fc25143",
+      "equipe": "cde1d230-fda1-50c4-9add-2688373280d0",
+      "status": "P"
+    }
+  },
+  {
+    "model": "core.convite",
+    "pk": 2,
+    "fields": {
+      "convidante": "9a5e24f2-8722-575c-a5dc-2bfe0ad0b635",
+      "professor": null,
+      "aluno": "b8ce9708-0d02-5c2a-aeba-96af4a8c9906",
+      "equipe": "cde1d230-fda1-50c4-9add-2688373280d0",
+      "status": "A"
+    }
+  },
+  {
+    "model": "core.convite",
+    "pk": 3,
+    "fields": {
+      "convidante": "d474edd4-d109-5499-8ea7-7ec2821215b8",
+      "professor": null,
+      "aluno": "eff48e47-670d-5c20-a2c3-0a2fbf12bb78",
+      "equipe": "98cfffb4-def3-5279-bdaf-09c67806f35e",
+      "status": "P"
+    }
+  },
+  {
+    "model": "core.convite",
+    "pk": 4,
+    "fields": {
+      "convidante": "0162de3b-52d4-5ce0-998f-ee7c34438105",
+      "professor": null,
+      "aluno": "e3565deb-9327-5798-ac5e-d27357e87785",
+      "equipe": "aea40789-e02d-5abd-81eb-b5390222e3af",
+      "status": "N"
+    }
+  },
+  {
+    "model": "core.convite",
+    "pk": 5,
+    "fields": {
+      "convidante": "33e8dddd-cf5a-5e4c-92dd-addd6275592c",
+      "professor": null,
+      "aluno": "f45d7058-3b19-5d21-80cb-543a8d57f30f",
+      "equipe": "6128253b-6b39-53fe-b023-a01e11d77956",
+      "status": "P"
+    }
+  },
+  {
+    "model": "core.convite",
+    "pk": 6,
+    "fields": {
+      "convidante": "d474edd4-d109-5499-8ea7-7ec2821215b8",
+      "professor": "0162de3b-52d4-5ce0-998f-ee7c34438105",
+      "aluno": null,
+      "equipe": "98cfffb4-def3-5279-bdaf-09c67806f35e",
+      "status": "P"
+    }
+  }
+]

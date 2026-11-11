@@ -8,6 +8,8 @@ class SugestaoProjeto(models.Model):
     descricao = models.TextField(max_length=1000, validators=[MaxLengthValidator(1000)])
     criado_em = models.DateTimeField(auto_now_add=True)
     anonimo = models.BooleanField(default=True)
+    recusada = models.BooleanField(default=False, db_index=True)
+    recusada_em = models.DateTimeField(null=True, blank=True)
 
     equipe = models.ForeignKey(
         'core.Equipe',
@@ -24,6 +26,11 @@ class SugestaoProjeto(models.Model):
     anexos = models.ManyToManyField(
         'uploader.Document',
         related_name='sugestoes_projeto',
+        blank=True,
+    )
+    favoritada_por = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='sugestoes_favoritas',
         blank=True,
     )
 

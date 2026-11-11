@@ -5,6 +5,7 @@ from uploader.models import Image
 
 class Post(models.Model):
     legenda = models.TextField(blank=True)
+    formato_imagem = models.CharField(max_length=12, choices=[('QUADRADO', 'Quadrado'), ('RETANGULAR', 'Retangular')], default='RETANGULAR')
     criado_em = models.DateTimeField(auto_now_add=True)
     aluno_criador = models.ForeignKey(
         'core.Aluno',
@@ -42,3 +43,20 @@ class PostImage(models.Model):
         null=True,
         blank=True
     )
+
+class PostLike(models.Model):
+    post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
+    user = models.ForeignKey('core.User', related_name='post_likes', on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['post', 'user'], name='unique_post_like')]
+
+
+class PostComment(models.Model):
+    post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+    user = models.ForeignKey('core.User', related_name='post_comments', on_delete=models.CASCADE)
+    texto = models.TextField(max_length=1000)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['criado_em', 'pk']

@@ -1,0 +1,124 @@
+from datetime import date
+from django.test import TestCase
+from rest_framework.test import APIClient
+from core.models import User, Aluno, Professor, Equipe, Convite
+
+
+class ConvitesEquipeTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.owner_user = User.objects.create_user(email='owner@test.example')
+        self.teacher_user = User.objects.create_user(email='teacher@test.example')
+        self.student_user = User.objects.create_user(email='student@test.example')
+        self.other_user = User.objects.create_user(email='other@test.example')
+        self.owner = Professor.objects.create(user=self.owner_user, cpf='11111111111', telefone='47999999999', data_nascimento=date(1985, 1, 1))
+        self.teacher = Professor.objects.create(user=self.teacher_user, cpf='22222222222', telefone='47999999998', data_nascimento=date(1986, 1, 1))
+        self.student = Aluno.objects.create(user=self.student_user, data_nascimento=date(2006, 1, 1))
+        self.other = Aluno.objects.create(user=self.other_user, data_nascimento=date(2006, 2, 2))
+        self.team = Equipe.objects.create(nome='Robótica', criador=self.owner)
+        self.team.professores.add(self.owner, self.teacher)
+        self.team.alunos.add(self.student)
+
+    def test_non_creator_cannot_remove_student(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.delete(f'/api/equipes/{self.team.pk}/membros/{self.student.pk}/?tipo=aluno')
+        self.assertEqual(response.status_code, 403)
+
+    def test_creator_cannot_be_removed(self):
+        self.client.force_authenticate(self.owner_user)
+        response = self.client.delete(f'/api/equipes/{self.team.pk}/membros/{self.owner.pk}/?tipo=professor')
+        self.assertEqual(response.status_code, 400)
+
+    def test_invitation_acceptance_adds_student(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.post('/api/convites/', {'equipe': str(self.team.pk), 'aluno': str(self.other.pk)}, format='json')
+        self.assertEqual(response.status_code, 201)
+        invitation_id = response.data['id']
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())
+        self.client.force_authenticate(self.other_user)
+        response = self.client.post(f'/api/convites/{invitation_id}/aceitar/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.team.alunos.filter(pk=self.other.pk).exists())
+
+    def test_unrelated_user_cannot_accept_invitation(self):
+        self.client.force_authenticate(self.owner_user)
+        response = self.client.post('/api/convites/', {'equipe': str(self.team.pk), 'aluno': str(self.other.pk)}, format='json')
+        self.client.force_authenticate(self.student_user)
+        # Convites fora do acesso do usuário não são expostos pelo queryset.
+        self.assertEqual(self.client.post(f"/api/convites/{response.data['id']}/aceitar/").status_code, 404)
+
+    def test_professor_outside_team_cannot_invite(self):
+        outsider_user = User.objects.create_user(email='outsider@test.example')
+        outsider = Professor.objects.create(
+            user=outsider_user, cpf='33333333333', telefone='47999999997',
+            data_nascimento=date(1989, 1, 1)
+        )
+        self.client.force_authenticate(outsider_user)
+        response = self.client.post('/api/convites/', {
+            'equipe': str(self.team.pk), 'aluno': str(self.other.pk)
+        }, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Convite.objects.filter(convidante=outsider).exists())
+
+    def test_invitation_decline_does_not_add_member(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.post('/api/convites/', {
+            'equipe': str(self.team.pk), 'aluno': str(self.other.pk)
+        }, format='json')
+        self.client.force_authenticate(self.other_user)
+        decline = self.client.post(f"/api/convites/{response.data['id']}/recusar/")
+        self.assertEqual(decline.status_code, 200)
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())
+
+    def test_creator_cannot_leave_team(self):
+        self.client.force_authenticate(self.owner_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/sair/')
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(self.team.professores.filter(pk=self.owner.pk).exists())
+
+    def test_non_creator_cannot_modify_members_via_patch(self):
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.patch(
+            f'/api/equipes/{self.team.pk}/',
+            {'alunos': []},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(self.team.alunos.filter(pk=self.student.pk).exists())
+
+    def test_join_request_requires_teacher_approval(self):
+        self.client.force_authenticate(self.other_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/solicitar/')
+        self.assertEqual(response.status_code, 201)
+        request_id = response.data['id']
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())
+        self.assertEqual(self.client.post(f'/api/equipes/{self.team.pk}/solicitar/').status_code, 400)
+        self.client.force_authenticate(self.teacher_user)
+        response = self.client.post(
+            f'/api/equipes/{self.team.pk}/solicitacoes/{request_id}/responder/',
+            {'aceitar': True}, format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.team.alunos.filter(pk=self.other.pk).exists())
+
+    def test_outsider_cannot_review_join_request(self):
+        self.client.force_authenticate(self.other_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/solicitar/')
+        request_id = response.data['id']
+        self.assertEqual(self.client.get(f'/api/equipes/{self.team.pk}/solicitacoes/').status_code, 403)
+        self.assertEqual(self.client.post(
+            f'/api/equipes/{self.team.pk}/solicitacoes/{request_id}/responder/',
+            {'aceitar': True}, format='json'
+        ).status_code, 403)
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())
+
+    def test_teacher_can_reject_join_request(self):
+        self.client.force_authenticate(self.other_user)
+        response = self.client.post(f'/api/equipes/{self.team.pk}/solicitar/')
+        self.client.force_authenticate(self.owner_user)
+        response = self.client.post(
+            f"/api/equipes/{self.team.pk}/solicitacoes/{response.data['id']}/responder/",
+            {'aceitar': False}, format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.team.alunos.filter(pk=self.other.pk).exists())

@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password):
         """Create, save and return a new superuser."""
-        user = self.create_user(email, password)
+        user = self.create_user(email, password, is_active=True, email_verified=True)
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
@@ -51,6 +51,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name=_('Usuário é da equipe'),
         help_text=_('Indica que este usuário pode acessar o Admin.'),
     )
+
+    email_verified = models.BooleanField(default=False)
+    verification_code_hash = models.CharField(max_length=128, blank=True, default='')
+    verification_code_created_at = models.DateTimeField(null=True, blank=True)
+    verification_attempts = models.PositiveSmallIntegerField(default=0)
 
     objects = UserManager()
 

@@ -5,7 +5,8 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('core', '0018_merge_home_highlights'),
+        ('core', '0014_merge_email_verification_favoritos'),
+        ('core', '0017_definir_owner_equipes_antigas'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

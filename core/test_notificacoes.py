@@ -40,9 +40,9 @@ class NotificacaoTests(APITestCase):
 
         assert response.status_code == 201
         notifications = Notificacao.objects.filter(projeto_id=response.data['id'])
-        assert notifications.count() == 2
+        assert notifications.count() == 1
         assert set(notifications.values_list('destinatario_id', flat=True)) == {
-            self.aluno_user.pk, self.prof_user.pk,
+            self.prof_user.pk,
         }
         assert set(notifications.values_list('tipo', flat=True)) == {Notificacao.Tipo.PROJETO}
         assert not notifications.filter(lida_em__isnull=False).exists()
@@ -54,7 +54,8 @@ class NotificacaoTests(APITestCase):
 
         assert response.status_code == 201
         notifications = Notificacao.objects.filter(tipo=Notificacao.Tipo.POST)
-        assert notifications.count() == 2
+        assert notifications.count() == 1
+        assert not notifications.filter(destinatario=self.aluno_user).exists()
         assert all(n.projeto_id == self.projeto.pk and n.post_id == response.data['id'] for n in notifications)
         assert not notifications.filter(destinatario=self.outro_user).exists()
 
@@ -66,6 +67,34 @@ class NotificacaoTests(APITestCase):
         self.projeto.titulo = 'Título editado'
         self.projeto.save()
         assert Notificacao.objects.count() == before
+
+    def test_professor_does_not_receive_notifications_for_own_creations(self):
+        # Dois perfis do mesmo usuário também devem ser excluídos.
+        aluno = Aluno.objects.create(user=self.prof_user, data_nascimento=date(2000, 1, 1))
+        self.equipe.alunos.add(aluno)
+        self.client.force_authenticate(self.prof_user)
+        response = self.client.post(reverse('projetos-list'), {
+            'titulo': 'Projeto do professor', 'desc_curta': 'Descrição curta',
+            'descricao': 'Descrição completa', 'equipe': self.equipe.pk,
+        }, format='json')
+        assert response.status_code == 201
+        assert list(Notificacao.objects.filter(projeto_id=response.data['id']).values_list(
+            'destinatario_id', flat=True,
+        )) == [self.aluno_user.pk]
+
+        response = self.client.post(reverse('posts-list'), {
+            'legenda': 'Publicação do professor', 'projeto': self.projeto.pk,
+        }, format='json')
+        assert response.status_code == 201
+        assert list(Notificacao.objects.filter(post_id=response.data['id']).values_list(
+            'destinatario_id', flat=True,
+        )) == [self.aluno_user.pk]
+
+    def test_direct_post_creation_excludes_professor_author(self):
+        post = Post.objects.create(projeto=self.projeto, professor_criador=self.professor)
+        assert list(Notificacao.objects.filter(post=post).values_list(
+            'destinatario_id', flat=True,
+        )) == [self.aluno_user.pk]
 
     def test_post_without_project_does_not_notify(self):
         before = Notificacao.objects.count()

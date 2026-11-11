@@ -6,7 +6,7 @@ As notificações ficam no banco do backend, na tabela `core_notificacao`. Cada 
 
 - Um projeto novo gera um aviso para os alunos e professores ativos da equipe.
 - Um post vinculado a um projeto gera um aviso para os membros ativos da equipe desse projeto.
-- O criador também recebe o aviso se participar da equipe. Um usuário com os dois perfis recebe apenas um aviso por evento.
+- O criador não recebe aviso da própria ação: nos projetos, o autor é o usuário autenticado na API; nos posts, é o usuário do perfil criador. Um usuário com os dois perfis recebe apenas um aviso por evento de outro membro.
 - Edições, posts sem projeto e registros importados por fixtures não geram avisos.
 - Entrar em uma equipe não gera notificações retroativas.
 - Excluir um post preserva o aviso e o acesso ao projeto. Excluir o projeto remove seus avisos.

@@ -1,5 +1,3 @@
-from core.views.user import EmailVerificationView, ResendVerificationCodeView
-
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -33,6 +31,13 @@ from core.views import (
 )
 from core.views.equipe import EquipeViewSet
 from core.views.form_limits import FormLimitsView
+from core.views.user import (
+    EmailVerificationView,
+    RequestPasswordResetView,
+    ResendVerificationCodeView,
+    ResetPasswordView,
+    VerifyPasswordResetCodeView,
+)
 from uploader.router import router as uploader_router
 
 router = DefaultRouter()
@@ -54,6 +59,9 @@ urlpatterns = [
     path('api/formularios/limites/', FormLimitsView.as_view(), name='form-limits'),
     path('api/verificar-email/', EmailVerificationView.as_view()),
     path('api/reenviar-codigo/', ResendVerificationCodeView.as_view()),
+    path('api/recuperar-senha/', RequestPasswordResetView.as_view()),
+    path('api/recuperar-senha/verificar-codigo/', VerifyPasswordResetCodeView.as_view()),
+    path('api/redefinir-senha/', ResetPasswordView.as_view()),
     path('admin/', admin.site.urls),
     # OpenAPI 3
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

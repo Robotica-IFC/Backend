@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Confirme seu e-mail — Robótica IFC</title>
+    <title>{% if password_reset %}Redefina sua senha{% else %}Confirme seu e-mail{% endif %} — Robótica IFC</title>
   </head>
   <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f1f5f9;">
@@ -18,8 +18,8 @@
             </tr>
             <tr>
               <td style="padding:32px 24px;">
-                <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;color:#003d66;">Confirme seu e-mail</h1>
-                <p style="margin:0 0 24px;font-size:16px;line-height:1.6;">Olá! Falta só mais um passo para concluir seu cadastro. Digite o código abaixo na tela de verificação:</p>
+                <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;color:#003d66;">{% if password_reset %}Redefina sua senha{% else %}Confirme seu e-mail{% endif %}</h1>
+                <p style="margin:0 0 24px;font-size:16px;line-height:1.6;">{% if password_reset %}Olá! Recebemos uma solicitação para redefinir sua senha. Digite o código abaixo na tela de recuperação:{% else %}Olá! Falta só mais um passo para concluir seu cadastro. Digite o código abaixo na tela de verificação:{% endif %}</p>
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                   <tr>
                     <td align="center" style="padding:20px 8px;background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;">
@@ -28,12 +28,12 @@
                   </tr>
                 </table>
                 <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#475569;">Este código é válido por <strong>10 minutos</strong>. Não compartilhe com outras pessoas.</p>
-                <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#64748b;">Se você não solicitou este cadastro, pode ignorar esta mensagem.</p>
+                <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#64748b;">{% if password_reset %}Se você não solicitou a redefinição, ignore esta mensagem. Sua senha continuará a mesma.{% else %}Se você não solicitou este cadastro, pode ignorar esta mensagem.{% endif %}</p>
               </td>
             </tr>
             <tr>
               <td style="padding:20px 24px;border-top:1px solid #e2e8f0;">
-                <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">Equipe Robótica IFC<br>Mensagem automática de confirmação de cadastro.</p>
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">Equipe Robótica IFC<br>Mensagem automática de {% if password_reset %}recuperação de senha{% else %}confirmação de cadastro{% endif %}.</p>
               </td>
             </tr>
           </table>

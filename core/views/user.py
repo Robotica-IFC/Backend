@@ -1,26 +1,49 @@
+import secrets
 from datetime import timedelta
-from django.contrib.auth.hashers import check_password
+
+from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
-from rest_framework.views import APIView
-from core.email_verification import send_verification_code, send_initial_code
-from core.serializers.user import MyTokenObtainPairSerializer, VerifyEmailSerializer, VerificationEmailSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
+from core.account_deletion import account_deletion_blocker, delete_account
+from core.email_verification import send_initial_code, send_verification_code
 from core.models import User
 from core.serializers import UserRegistrationSerializer, UserSerializer
+from core.serializers.user import (
+    MyTokenObtainPairSerializer,
+    ResetPasswordSerializer,
+    VerificationEmailSerializer,
+    VerifyEmailSerializer,
+)
 
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        if user.pk != request.user.pk:
+            raise PermissionDenied('Você só pode excluir sua própria conta.')
+        delete_account(user.pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='exclusao')
+    def exclusao(self, request):
+        blocker = account_deletion_blocker(request.user)
+        return Response({'pode_excluir': not bool(blocker), 'detail': blocker})
 
     @extend_schema(
         summary="Dados do usuário autenticado",
@@ -33,6 +56,11 @@ class UserViewSet(ModelViewSet):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @me.mapping.delete
+    def delete_me(self, request):
+        delete_account(request.user.pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserRegistrationView(CreateAPIView):
@@ -101,3 +129,106 @@ class ResendVerificationCodeView(APIView):
                 except Exception:
                     return Response({'detail': 'Não foi possível enviar o e-mail. Tente novamente mais tarde.'}, status=503)
         return Response({'detail': 'Se houver uma conta pendente, um código será enviado.'})
+
+
+class RequestPasswordResetView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = VerificationEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            with transaction.atomic():
+                user = User.objects.select_for_update().filter(
+                    email__iexact=serializer.validated_data['email'],
+                ).first()
+                if not user:
+                    return Response({
+                        'email': ['Este e-mail não está cadastrado. Confira o endereço e tente novamente.'],
+                    }, status=400)
+                if not user.is_active:
+                    return Response({'email': ['Esta conta está inativa. Entre em contato com o suporte.']}, status=400)
+                now = timezone.now()
+                created = user.password_reset_created_at
+                if created and now < created + timedelta(seconds=60):
+                    remaining = max(1, int((created + timedelta(seconds=60) - now).total_seconds()) + 1)
+                    return Response({
+                        'detail': 'Aguarde 60 segundos entre os envios.', 'retry_after': remaining,
+                    }, status=429)
+                if created and user.password_reset_attempts >= 5 and now < created + timedelta(minutes=10):
+                    return Response({'detail': 'Aguarde o código expirar para solicitar outro.'}, status=429)
+                if not created or now >= created + timedelta(minutes=10):
+                    user.password_reset_attempts = 0
+                    user.save(update_fields=['password_reset_attempts'])
+                send_verification_code(user, password_reset=True)
+        except Exception:
+            return Response({'detail': 'Não foi possível enviar o e-mail. Tente novamente mais tarde.'}, status=503)
+        return Response({'detail': 'Enviamos um código para seu e-mail. Confira também a pasta de spam.'})
+
+
+def password_reset_expired(user):
+    return not user or not user.password_reset_created_at or (
+        timezone.now() >= user.password_reset_created_at + timedelta(minutes=10)
+    )
+
+
+class VerifyPasswordResetCodeView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = VerifyEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(
+                email__iexact=serializer.validated_data['email'], is_active=True,
+            ).first()
+            if password_reset_expired(user):
+                return Response({'detail': 'Código inválido ou expirado. Solicite um novo.'}, status=400)
+            if user.password_reset_attempts >= 5:
+                return Response({'detail': 'Muitas tentativas. Aguarde o código expirar e solicite outro.'}, status=429)
+            if not user.password_reset_code_hash:
+                return Response({'detail': 'Código inválido ou já utilizado. Solicite um novo.'}, status=400)
+            if not check_password(serializer.validated_data['codigo'], user.password_reset_code_hash):
+                user.password_reset_attempts += 1
+                user.save(update_fields=['password_reset_attempts'])
+                return Response({'detail': 'Código incorreto. Confira os seis números e tente novamente.'}, status=400)
+            token = secrets.token_urlsafe(32)
+            user.password_reset_token_hash = make_password(token)
+            user.password_reset_code_hash = ''
+            user.save(update_fields=['password_reset_token_hash', 'password_reset_code_hash'])
+        return Response({'token': token})
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(email__iexact=data['email'], is_active=True).first()
+            if password_reset_expired(user) or not user.password_reset_token_hash or not check_password(
+                data['token'], user.password_reset_token_hash,
+            ):
+                return Response({
+                    'detail': 'Sua autorização expirou ou é inválida. Solicite um novo código.',
+                    'code': 'password_reset_expired',
+                }, status=400)
+            try:
+                validate_password(data['password'], user=user)
+            except ValidationError as error:
+                return Response({'password': error.messages}, status=400)
+            user.set_password(data['password'])
+            user.password_reset_token_hash = ''
+            user.password_reset_code_hash = ''
+            user.password_reset_created_at = None
+            user.password_reset_attempts = 0
+            user.save(update_fields=[
+                'password', 'password_reset_token_hash', 'password_reset_code_hash',
+                'password_reset_created_at', 'password_reset_attempts',
+            ])
+        return Response({'detail': 'Senha redefinida com sucesso. Entre com sua nova senha.'})

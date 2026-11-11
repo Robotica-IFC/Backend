@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.serializers import ModelSerializer
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 
 from core.models import User
 
@@ -76,9 +76,28 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
+class MyTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        try:
+            return super().validate(attrs)
+        except User.DoesNotExist:
+            raise AuthenticationFailed('Esta conta foi excluída. Entre com outra conta.', code='user_not_found')
+
+
 class VerificationEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
 class VerifyEmailSerializer(VerificationEmailSerializer):
     codigo = serializers.RegexField(r'^[0-9]{6}$', min_length=6, max_length=6)
+
+
+class ResetPasswordSerializer(VerificationEmailSerializer):
+    token = serializers.CharField(max_length=128, trim_whitespace=False, write_only=True)
+    password = serializers.CharField(min_length=8, trim_whitespace=False, write_only=True)
+    confirm_password = serializers.CharField(trim_whitespace=False, write_only=True)
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({'confirm_password': 'As senhas não coincidem.'})
+        return attrs

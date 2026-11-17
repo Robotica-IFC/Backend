@@ -179,6 +179,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Tokens de atualização expiram em 1 dia
     'AUTH_HEADER_TYPES': ('Bearer',),
     'TOKEN_OBTAIN_PAIR_SERIALIZER': 'core.serializers.user.MyTokenObtainPairSerializer',
+    'TOKEN_REFRESH_SERIALIZER': 'core.serializers.user.MyTokenRefreshSerializer',
 }
 
 # Configure SMTP credentials only in the backend hosting environment.

@@ -56,6 +56,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     verification_code_hash = models.CharField(max_length=128, blank=True, default='')
     verification_code_created_at = models.DateTimeField(null=True, blank=True)
     verification_attempts = models.PositiveSmallIntegerField(default=0)
+    password_reset_code_hash = models.CharField(max_length=128, blank=True, default='')
+    password_reset_created_at = models.DateTimeField(null=True, blank=True)
+    password_reset_attempts = models.PositiveSmallIntegerField(default=0)
+    password_reset_token_hash = models.CharField(max_length=128, blank=True, default='')
 
     objects = UserManager()
 

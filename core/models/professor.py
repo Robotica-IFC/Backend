@@ -11,7 +11,7 @@ from .user import User
 class Professor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professor_profile')
-    cpf = models.CharField(max_length=11, unique=True)
+    cpf = models.CharField(max_length=11, unique=True, blank=True, null=True)
     descricao = models.TextField(max_length=1000, null=True, blank=True)
     telefone = models.CharField(max_length=15)
     data_nascimento = models.DateField()

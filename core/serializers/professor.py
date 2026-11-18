@@ -58,6 +58,9 @@ class ProfessorSerializer(ModelSerializer):
         )
         read_only_fields = ['user', 'email_verificado']
 
+    def validate_cpf(self, value):
+        return value or None
+
     def create(self, validated_data):
         name = validated_data.pop('name')
         email = validated_data.pop('email')

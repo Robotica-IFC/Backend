@@ -29,6 +29,8 @@ class FormLimitsTests(TestCase):
         assert rules['comentario']['texto']['max_length'] == 1000
         assert rules['usuario']['username']['max_length'] == 20
         assert rules['professor']['cpf']['max_length'] == 11
+        assert not rules['professor']['cpf']['required']
+        assert rules['professor']['cpf']['allow_blank']
         assert rules['item']['quantidade']['min_value'] == 0
         assert int(rules['item']['quantidade']['max_value']) > 0
         assert 'verification_code_hash' not in rules['usuario']

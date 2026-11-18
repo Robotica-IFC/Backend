@@ -1,6 +1,10 @@
 # Confirmação de e-mail em produção
 
-O front cadastra em `/api/alunos/` ou `/api/professores/`, abre `/verificar-email` e só recebe tokens após confirmar o código. A conta permanece criada se o SMTP falhar: depois de corrigir a configuração, use “Reenviar código”. O código expira em 10 minutos, permite cinco erros e o reenvio exige 60 segundos de intervalo. Após cinco erros, espere a expiração para reenviar.
+O front inicia o cadastro em `/api/alunos/` ou `/api/professores/`. A API responde com HTTP 202 e um `registration_token`, sem criar `User`, `Aluno` ou `Professor` e sem emitir tokens de login. Os dados ficam em um cadastro temporário por até 24 horas, com a senha armazenada apenas como hash. Cadastros temporários expirados são removidos ao iniciar novos cadastros.
+
+O front guarda o identificador na sessão da aba e o envia com o e-mail e o código para `/api/verificar-email/`. Só depois da confirmação a API cria a conta e o perfil, marca o e-mail como verificado e devolve os tokens de login. O mesmo identificador deve acompanhar `/api/reenviar-codigo/`. O código expira em 10 minutos, permite cinco erros e o reenvio exige 60 segundos de intervalo. Após cinco erros, espere a expiração para reenviar.
+
+Se o SMTP falhar no envio inicial, a API retorna HTTP 503 e não cria conta nem cadastro temporário: corrija a configuração e tente enviar o formulário novamente. Falhas no reenvio preservam o código anterior. Contas antigas ainda não verificadas continuam podendo confirmar o e-mail pelo fluxo anterior, mas não podem fazer login, renovar tokens ou acessar endpoints autenticados antes da confirmação.
 
 ## Backend — Fábrica de Software IFC
 
@@ -39,11 +43,11 @@ O arquivo vercel.json permite abrir e atualizar rotas do Vue como `/verificar-em
 
 ## Verificação após publicar
 
-1. Crie uma conta nova de aluno e confirme que ela fica na tela do código.
+1. Inicie um cadastro de aluno e confirme que ele fica na tela do código, sem criar usuário ou perfil no banco.
 2. Confira o e-mail e o spam. Se não chegar, consulte o log do backend, ajuste SMTP e reenvie.
 3. Teste um código incorreto: deve haver erro, sem login.
-4. Informe o código correto: deve abrir `/home-page` com o perfil correto.
+4. Informe o código correto: somente agora o usuário e o perfil devem ser criados, e o front deve abrir `/home-page`.
 5. Repita com uma conta nova de professor.
-6. Tente entrar antes de confirmar: a tela de login deve encaminhar para confirmação, onde é possível reenviar o código.
+6. Tente entrar antes de confirmar: o acesso deve ser negado. Na mesma aba, o login deve oferecer “Verificar e-mail” para retomar o cadastro temporário, inclusive depois de atualizar a página.
 
 Para desenvolvimento sem SMTP, use `EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend` somente no ambiente local. O código será exibido no terminal local.

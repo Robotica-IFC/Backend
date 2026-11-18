@@ -7,6 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 from core.account_deletion import delete_account
 from core.models import Professor
 from core.serializers import ProfessorListSerializer, ProfessorRetrieveSerializer, ProfessorSerializer
+from .registration import start_registration
 
 
 class ProfessorViewSet(ModelViewSet):
@@ -17,6 +18,11 @@ class ProfessorViewSet(ModelViewSet):
     permission_classes = [AllowAny]
 
     http_method_names = ['get', 'post', 'put', 'delete', 'patch']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return start_registration(serializer, 'professor')
 
     def get_permissions(self):
         if self.action == 'destroy':

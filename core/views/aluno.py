@@ -7,6 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 from core.account_deletion import delete_account
 from core.models import Aluno
 from core.serializers import AlunoListSerializer, AlunoRetrieveSerializer, AlunoSerializer
+from .registration import start_registration
 
 
 class AlunoViewSet(ModelViewSet):
@@ -17,6 +18,11 @@ class AlunoViewSet(ModelViewSet):
     permission_classes = [AllowAny]  # permite a criação de usuarios por qualquer usuario
 
     http_method_names = ['get', 'post', 'put', 'delete', 'patch']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return start_registration(serializer, 'aluno')
 
     def get_permissions(self):
         if self.action == 'destroy':

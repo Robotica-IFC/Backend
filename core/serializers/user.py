@@ -2,8 +2,10 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.serializers import ModelSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import User
+from .registration import create_registration_user, validate_registration_email
 
 
 class UserSerializer(ModelSerializer):
@@ -22,7 +24,13 @@ class UserRegistrationSerializer(ModelSerializer):
         fields = ['id', 'email', 'name', 'password']
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        return create_registration_user(
+            **validated_data, password_hash=self.context.get('registration_password_hash'),
+            email_verified=self.context.get('email_verified_registration', False),
+        )
+
+    def validate_email(self, value):
+        return validate_registration_email(value)
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -79,7 +87,12 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenRefreshSerializer(TokenRefreshSerializer):
     def validate(self, attrs):
         try:
-            return super().validate(attrs)
+            data = super().validate(attrs)
+            token = RefreshToken(attrs['refresh'])
+            user = User.objects.get(pk=token['user_id'])
+            if not user.email_verified:
+                raise PermissionDenied({'detail': 'Confirme seu e-mail antes de entrar.', 'code': 'email_not_verified'})
+            return data
         except User.DoesNotExist:
             raise AuthenticationFailed('Esta conta foi excluída. Entre com outra conta.', code='user_not_found')
 
@@ -88,7 +101,11 @@ class VerificationEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-class VerifyEmailSerializer(VerificationEmailSerializer):
+class RegistrationVerificationEmailSerializer(VerificationEmailSerializer):
+    registration_token = serializers.UUIDField(required=False)
+
+
+class VerifyEmailSerializer(RegistrationVerificationEmailSerializer):
     codigo = serializers.RegexField(r'^[0-9]{6}$', min_length=6, max_length=6)
 
 

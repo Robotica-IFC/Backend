@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken
 
 from core.email_verification import send_verification_code
-from core.models import User
+from core.models import CadastroPendente, User
 
 
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
@@ -30,7 +30,7 @@ class EmailVerificationTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.data['code'], 'email_not_verified')
 
-    def test_registration_creates_pending_user_and_allows_resend(self):
+    def test_registration_stores_only_temporary_data_until_verification(self):
         response = self.client.post('/api/alunos/', {
             'email': 'pendente@example.com',
             'name': 'Pendente',
@@ -38,12 +38,13 @@ class EmailVerificationTests(TestCase):
             'password': 'StrongPass123!',
             'data_nascimento': '2000-01-01',
         })
-        self.assertEqual(response.status_code, 201, response.data)
-        user = User.objects.get(email='pendente@example.com')
-        self.assertTrue(user.is_active)
-        self.assertFalse(user.email_verified)
+        self.assertEqual(response.status_code, 202, response.data)
+        self.assertFalse(User.objects.filter(email='pendente@example.com').exists())
+        pending = CadastroPendente.objects.get(pk=response.data['registration_token'])
+        pending.verification_code_created_at = timezone.now() - timedelta(minutes=2)
+        pending.save(update_fields=['verification_code_created_at'])
         self.assertEqual(
-            self.client.post('/api/reenviar-codigo/', {'email': user.email}).status_code,
+            self.client.post('/api/reenviar-codigo/', {'email': pending.email, 'registration_token': str(pending.pk)}).status_code,
             200,
         )
 
@@ -98,12 +99,14 @@ class EmailVerificationTests(TestCase):
                 data = {'email': f'{route}@example.com', 'name': 'Novo', 'username': route, 'password': 'StrongPass123!', 'data_nascimento': '2000-01-01', 'email_verificado': True, **extra}
                 with self.captureOnCommitCallbacks(execute=True):
                     response = self.client.post(f'/api/{route}/', data)
-                self.assertEqual(response.status_code, 201, response.data)
-                user = User.objects.get(email=data['email'])
-                self.assertFalse(user.email_verified)
+                self.assertEqual(response.status_code, 202, response.data)
+                self.assertFalse(User.objects.filter(email=data['email']).exists())
+                token = response.data['registration_token']
                 code = re.search(r'\b[0-9]{6}\b', mail.outbox[-1].body).group()
-                response = self.client.post('/api/verificar-email/', {'email': user.email, 'codigo': code})
+                response = self.client.post('/api/verificar-email/', {'email': data['email'], 'codigo': code, 'registration_token': token})
                 self.assertEqual(response.status_code, 200, response.data)
+                user = User.objects.get(email=data['email'])
+                self.assertTrue(user.email_verified)
                 token = AccessToken(response.data['access'])
                 self.assertEqual(token['tipo'], tipo)
                 self.assertIn(f'{tipo}_id', token)
@@ -111,8 +114,9 @@ class EmailVerificationTests(TestCase):
                 self.assertTrue(profile.email_verificado)
 
     @patch('core.email_verification.send_mail', side_effect=OSError('SMTP unavailable'))
-    def test_smtp_failure_keeps_account_pending(self, _send):
+    def test_smtp_failure_does_not_create_an_account(self, _send):
         with self.captureOnCommitCallbacks(execute=True):
             response = self.client.post('/api/alunos/', {'email': 'smtp@example.com', 'name': 'Novo', 'username': 'novo', 'password': 'StrongPass123!', 'data_nascimento': '2000-01-01'})
-        self.assertEqual(response.status_code, 201)
-        self.assertFalse(User.objects.get(email='smtp@example.com').email_verified)
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(User.objects.filter(email='smtp@example.com').exists())
+        self.assertFalse(CadastroPendente.objects.filter(email='smtp@example.com').exists())

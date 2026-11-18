@@ -130,7 +130,7 @@ class SugestaoProjetoAPITestCase(APITestCase):
         cls.equipe = Equipe.objects.create(nome='Cypher', instituicao=cls.instituicao)
         cls.outra_equipe = Equipe.objects.create(nome='Outra equipe', instituicao=cls.outra_instituicao)
         cls.equipe_inativa = Equipe.objects.create(nome='Inativa', instituicao=cls.instituicao, ativo=False)
-        cls.autor = User.objects.create_user(email='autor@example.com', name='Autor')
+        cls.autor = User.objects.create_user(email='autor@example.com', name='Autor', email_verified=True)
         cls.outro_usuario = User.objects.create_user(email='outro@example.com')
         cls.admin = User.objects.create_user(email='admin@example.com', is_staff=True)
         cls.aluno_user = User.objects.create_user(email='aluno@example.com')

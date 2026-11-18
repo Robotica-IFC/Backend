@@ -1,10 +1,14 @@
-from django.test import TestCase
+import re
+
+from django.core import mail
+from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import Professor
 
 
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
 class ProfessorRegistrationTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -20,29 +24,36 @@ class ProfessorRegistrationTests(TestCase):
             **extra,
         }, format='json')
 
+    def complete(self, response):
+        assert response.status_code == status.HTTP_202_ACCEPTED, response.data
+        code = re.search(r'\b[0-9]{6}\b', mail.outbox[-1].body).group()
+        verified = self.client.post('/api/verificar-email/', {
+            'email': response.data['email'], 'registration_token': response.data['registration_token'], 'codigo': code,
+        })
+        assert verified.status_code == status.HTTP_200_OK, verified.data
+        return Professor.objects.get(user__email=response.data['email'])
+
     def test_multiple_registrations_accept_missing_empty_or_null_cpf(self):
         cases = [{}, {}, {'cpf': ''}, {'cpf': ''}, {'cpf': None}, {'cpf': '   '}]
         for index, extra in enumerate(cases):
             with self.subTest(extra=extra, index=index):
                 response = self.register(f'prof{index}', **extra)
-                assert response.status_code == status.HTTP_201_CREATED, response.data
-                professor = Professor.objects.get(pk=response.data['id'])
+                professor = self.complete(response)
                 assert professor.cpf is None
 
     def test_provided_cpf_is_preserved_and_remains_unique(self):
         response = self.register('prof1', cpf='12345678901')
-        assert response.status_code == status.HTTP_201_CREATED, response.data
-        assert Professor.objects.get(pk=response.data['id']).cpf == '12345678901'
+        assert self.complete(response).cpf == '12345678901'
         duplicate = self.register('prof2', cpf='12345678901')
         assert duplicate.status_code == status.HTTP_400_BAD_REQUEST, duplicate.data
         assert 'cpf' in duplicate.data
 
     def test_existing_cpf_can_be_cleared(self):
         created = self.register('prof1', cpf='12345678901')
-        assert created.status_code == status.HTTP_201_CREATED, created.data
-        response = self.client.patch(f'/api/professores/{created.data["id"]}/', {'cpf': ''}, format='json')
+        professor = self.complete(created)
+        response = self.client.patch(f'/api/professores/{professor.pk}/', {'cpf': ''}, format='json')
         assert response.status_code == status.HTTP_200_OK, response.data
-        assert Professor.objects.get(pk=created.data['id']).cpf is None
+        assert Professor.objects.get(pk=professor.pk).cpf is None
 
     def test_provided_cpf_still_respects_max_length(self):
         response = self.register('prof1', cpf='123456789012')

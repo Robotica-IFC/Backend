@@ -6,6 +6,8 @@ from core.email_verification import send_initial_code
 from core.models import Aluno, User
 from uploader.models import Image
 
+from .registration import create_registration_user, validate_registration_email
+
 
 class ImageSerializer(ModelSerializer):
     url = serializers.ReadOnlyField()
@@ -52,17 +54,26 @@ class AlunoSerializer(ModelSerializer):
         read_only_fields = ['user', 'email_verificado']
         depth = 1
 
+    def validate_email(self, value):
+        return validate_registration_email(value, self.instance)
+
     def create(self, validated_data):
         email = validated_data.pop('email')
         name = validated_data.pop('name')
         username = validated_data.pop('username')
         password = validated_data.pop('password')
+        verified = self.context.get('email_verified_registration', False)
 
         with transaction.atomic():
-            user = User.objects.create_user(email=email, name=name, username=username, password=password)
+            user = create_registration_user(
+                email=email, name=name, username=username, password=password,
+                password_hash=self.context.get('registration_password_hash'), email_verified=verified,
+            )
 
+            validated_data['email_verificado'] = verified
             aluno = Aluno.objects.create(user=user, **validated_data)
-            transaction.on_commit(lambda: send_initial_code(user))
+            if not verified:
+                transaction.on_commit(lambda: send_initial_code(user))
             return aluno
 
 

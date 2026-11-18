@@ -19,7 +19,9 @@ class NotificacaoViewSet(ReadOnlyModelViewSet):
     pagination_class = NotificacaoPagination
 
     def get_queryset(self):
-        return Notificacao.objects.filter(destinatario=self.request.user).select_related('projeto__equipe')
+        return Notificacao.objects.filter(destinatario=self.request.user).select_related(
+            'projeto__equipe', 'convite__equipe',
+        )
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)

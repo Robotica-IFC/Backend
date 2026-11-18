@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from core.models import Convite
@@ -34,13 +35,16 @@ class ConviteCreateSerializer(ModelSerializer):
 
     def create(self, validated_data):
         validated_data['convidante'] = self.context['request'].user.professor_profile
-        return super().create(validated_data)
+        with transaction.atomic():
+            return super().create(validated_data)
 
 
 class ConviteListRetrieveSerializer(ModelSerializer):
     equipe_nome = serializers.CharField(source='equipe.nome', read_only=True)
     convidante_nome = serializers.CharField(source='convidante.user.name', read_only=True)
+    notificacao_lida_em = serializers.DateTimeField(source='notificacao.lida_em', read_only=True, default=None)
 
     class Meta:
         model = Convite
-        fields = ['id', 'equipe', 'equipe_nome', 'aluno', 'professor', 'convidante', 'convidante_nome', 'status']
+        fields = ['id', 'equipe', 'equipe_nome', 'aluno', 'professor', 'convidante', 'convidante_nome',
+                  'status', 'notificacao_lida_em']

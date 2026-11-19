@@ -38,7 +38,9 @@ class ConviteViewSet(ModelViewSet):
 
     def _responder(self, request, pk, aceitar):
         with transaction.atomic():
-            convite = self.get_queryset().select_for_update().filter(pk=pk).first()
+            # Bloqueia apenas o convite: get_queryset() possui LEFT JOINs opcionais e DISTINCT,
+            # incompatíveis com SELECT FOR UPDATE no PostgreSQL.
+            convite = Convite.objects.select_for_update().filter(pk=pk).first()
             if not convite:
                 raise NotFound('Convite não encontrado.')
             destinatario_id = convite.aluno.user_id if convite.aluno_id else convite.professor.user_id

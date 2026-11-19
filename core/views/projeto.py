@@ -1,10 +1,13 @@
 from django.db import transaction
 from django.db.models import OuterRef, Subquery
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from core.filter_options import resource_filter_options
 from core.models import Equipe, Projeto
 from core.permissions_social import CanEditProject
 from core.serializers import (
@@ -17,7 +20,10 @@ from core.serializers.projeto import ProjetoDestaqueSerializer
 
 
 class ProjetoViewSet(ModelViewSet):
-    queryset = Projeto.objects.all()
+    queryset = Projeto.objects.select_related('equipe__instituicao', 'image_perfil').order_by('-data_criacao', '-pk')
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['status', 'equipe', 'equipe__nome', 'equipe__instituicao', 'equipe__instituicao__nome']
+    search_fields = ['titulo', 'desc_curta', 'descricao']
     permission_classes = [IsAuthenticatedOrReadOnly, CanEditProject]
 
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
@@ -26,15 +32,9 @@ class ProjetoViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-
-        equipe = self.request.query_params.get("equipe")
-
-        if equipe:
-            queryset = queryset.filter(equipe_id=equipe)
-
-        return queryset
+    @action(detail=False, methods=['get'])
+    def filtros(self, request):
+        return Response(resource_filter_options())
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -48,12 +48,24 @@ class ProjetoViewSet(ModelViewSet):
     @action(detail=False, methods=['get'])
     def destaques(self, request):
         equipes = Equipe.objects.order_by('-views', 'pk').values('pk')[:3]
-        mais_recente = Projeto.objects.filter(equipe_id=OuterRef('equipe_id')).order_by(
-            '-data_criacao', '-pk',
-        ).values('pk')[:1]
-        projetos = Projeto.objects.filter(
-            equipe_id__in=Subquery(equipes), pk=Subquery(mais_recente),
-        ).select_related('equipe__image_perfil', 'image_perfil').order_by('-equipe__views', 'equipe_id')
+        mais_recente = (
+            Projeto.objects
+            .filter(equipe_id=OuterRef('equipe_id'))
+            .order_by(
+                '-data_criacao',
+                '-pk',
+            )
+            .values('pk')[:1]
+        )
+        projetos = (
+            Projeto.objects
+            .filter(
+                equipe_id__in=Subquery(equipes),
+                pk=Subquery(mais_recente),
+            )
+            .select_related('equipe__image_perfil', 'image_perfil')
+            .order_by('-equipe__views', 'equipe_id')
+        )
         return Response(ProjetoDestaqueSerializer(projetos, many=True, context=self.get_serializer_context()).data)
 
     @action(detail=True, methods=['get'], url_path='posts')

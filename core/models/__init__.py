@@ -12,3 +12,4 @@ from .user import User
 from .sugestao_projeto import SugestaoProjeto
 from .notificacao import Notificacao
 from .solicitacao_equipe import SolicitacaoEquipe
+from .cadastro_pendente import CadastroPendente

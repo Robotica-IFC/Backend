@@ -17,21 +17,26 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from core.account_deletion import account_deletion_blocker, delete_account
-from core.email_verification import send_initial_code, send_verification_code
+from core.email_verification import send_verification_code
 from core.models import User
 from core.serializers import UserRegistrationSerializer, UserSerializer
 from core.serializers.user import (
     MyTokenObtainPairSerializer,
     ResetPasswordSerializer,
     VerificationEmailSerializer,
+    RegistrationVerificationEmailSerializer,
     VerifyEmailSerializer,
 )
+from .registration import start_registration, verify_pending_registration, resend_pending_registration
 
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        raise PermissionDenied('Use o cadastro com confirmação de e-mail para criar uma conta.')
 
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
@@ -70,9 +75,10 @@ class UserRegistrationView(CreateAPIView):
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
-    def perform_create(self, serializer):
-        user = serializer.save()
-        send_initial_code(user)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return start_registration(serializer, 'usuario')
 
 
 class EmailVerificationView(APIView):
@@ -82,6 +88,8 @@ class EmailVerificationView(APIView):
     def post(self, request):
         serializer = VerifyEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        if serializer.validated_data.get('registration_token'):
+            return verify_pending_registration(request, serializer.validated_data)
         with transaction.atomic():
             user = User.objects.select_for_update().filter(email__iexact=serializer.validated_data['email']).first()
             if not user or user.email_verified:
@@ -110,8 +118,10 @@ class ResendVerificationCodeView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        serializer = VerificationEmailSerializer(data=request.data)
+        serializer = RegistrationVerificationEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        if serializer.validated_data.get('registration_token'):
+            return resend_pending_registration(serializer.validated_data)
         with transaction.atomic():
             user = User.objects.select_for_update().filter(email__iexact=serializer.validated_data['email']).first()
             if user and not user.email_verified:

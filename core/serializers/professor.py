@@ -6,6 +6,8 @@ from core.email_verification import send_initial_code
 from core.models import Professor, User
 from uploader.models import Image
 
+from .registration import create_registration_user, validate_registration_email
+
 
 class ImageSerializer(ModelSerializer):
     url = serializers.ReadOnlyField()
@@ -58,17 +60,29 @@ class ProfessorSerializer(ModelSerializer):
         )
         read_only_fields = ['user', 'email_verificado']
 
+    def validate_cpf(self, value):
+        return value or None
+
+    def validate_email(self, value):
+        return validate_registration_email(value, self.instance)
+
     def create(self, validated_data):
         name = validated_data.pop('name')
         email = validated_data.pop('email')
         username = validated_data.pop('username')
         password = validated_data.pop('password')
+        verified = self.context.get('email_verified_registration', False)
 
         with transaction.atomic():
-            user = User.objects.create_user(email=email, name=name, username=username, password=password)
+            user = create_registration_user(
+                email=email, name=name, username=username, password=password,
+                password_hash=self.context.get('registration_password_hash'), email_verified=verified,
+            )
 
+            validated_data['email_verificado'] = verified
             professor = Professor.objects.create(user=user, **validated_data)
-            transaction.on_commit(lambda: send_initial_code(user))
+            if not verified:
+                transaction.on_commit(lambda: send_initial_code(user))
             return professor
 
 

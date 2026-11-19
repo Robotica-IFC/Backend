@@ -6,11 +6,17 @@ class Notificacao(models.Model):
     class Tipo(models.TextChoices):
         PROJETO = 'PROJETO', 'Novo projeto'
         POST = 'POST', 'Novo post'
+        CONVITE = 'CONVITE', 'Convite para equipe'
 
     destinatario = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificacoes',
     )
-    projeto = models.ForeignKey('core.Projeto', on_delete=models.CASCADE, related_name='notificacoes')
+    projeto = models.ForeignKey(
+        'core.Projeto', on_delete=models.CASCADE, null=True, blank=True, related_name='notificacoes',
+    )
+    convite = models.OneToOneField(
+        'core.Convite', on_delete=models.CASCADE, null=True, blank=True, related_name='notificacao',
+    )
     post = models.ForeignKey(
         'core.Post', on_delete=models.SET_NULL, null=True, blank=True, related_name='notificacoes',
     )

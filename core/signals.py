@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
-from core.models import Notificacao, Post, Projeto
+from core.models import Convite, Notificacao, Post, Projeto
 
 
 def notificar_equipe(projeto, tipo, using, post=None, autor_id=None):
@@ -45,4 +46,24 @@ def novo_post(sender, instance, created, raw, using, **kwargs):
         notificar_equipe(
             instance.projeto, Notificacao.Tipo.POST, using, post=instance,
             autor_id=criador.user_id if criador else None,
+        )
+
+
+@receiver(post_save, sender=Convite, dispatch_uid='notificar_convite_equipe')
+def convite_equipe(sender, instance, created, raw, using, **kwargs):
+    if raw:
+        return
+    if created and instance.status == Convite.StatusChoices.PENDENTE:
+        destinatario = instance.aluno if instance.aluno_id else instance.professor
+        if destinatario is not None:
+            Notificacao.objects.using(using).create(
+                destinatario_id=destinatario.user_id,
+                convite=instance,
+                tipo=Notificacao.Tipo.CONVITE,
+                titulo='Convite para participar de uma equipe',
+                mensagem=f'A equipe {instance.equipe.nome} convidou você para participar.',
+            )
+    elif instance.status != Convite.StatusChoices.PENDENTE:
+        Notificacao.objects.using(using).filter(convite=instance, lida_em__isnull=True).update(
+            lida_em=timezone.now(),
         )

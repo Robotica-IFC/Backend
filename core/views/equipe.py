@@ -13,6 +13,7 @@ from rest_framework import status
 
 from core.permissions_social import CanEditTeam
 from core.serializers.equipe import TransferirOwnerSerializer
+from core.filter_options import resource_filter_options
 from core.models import Equipe, SolicitacaoEquipe
 from core.pagination import EquipePagination
 from core.serializers import (
@@ -30,9 +31,9 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
     pagination_class = EquipePagination
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['categorias__nome', 'instituicao__nome', 'instituicao', 'ativo']
+    filterset_fields = ['categorias__nome', 'instituicao__nome', 'instituicao', 'ativo', 'categorias']
     search_fields = ['nome']
-    ordering = ['-views']
+    ordering = ['-views', 'pk']
 
     permission_classes = [IsAuthenticatedOrReadOnly, CanEditTeam]
 
@@ -41,7 +42,7 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
         Sobrescreve o queryset para ordenar pelas equipes com mais visualizações
         e otimizar o carregamento de relacionamentos no BD.
         """
-        queryset = Equipe.objects.all().order_by('-views')
+        queryset = Equipe.objects.all().order_by('-views', 'pk')
 
         if self.action == 'opcoes':
             return queryset.select_related('image_perfil')
@@ -54,6 +55,10 @@ class EquipeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retri
             )
 
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def filtros(self, request):
+        return Response(resource_filter_options())
 
     def get_serializer_class(self):
         if self.action in {'list', 'retrieve'}:

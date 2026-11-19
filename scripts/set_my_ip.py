@@ -34,7 +34,7 @@ def update_env_file(ip):
                     if line.startswith('MY_IP='):
                         continue
                     else:
-                        file.write(line)
+                        file.write(line.rstrip('\r\n') + '\n')
                 file.write(f'MY_IP={ip}\n')
 
         print(f'IP atualizado no arquivo .env: MY_IP={ip}')

@@ -19,10 +19,25 @@ def start_registration(serializer, tipo):
     data = serializer.validated_data
     now = timezone.now()
     email = data['email'].strip()
-    if CadastroPendente.objects.filter(
-        email__iexact=email, expira_em__gt=now, verification_code_created_at__gt=now - timedelta(seconds=60),
-    ).exists():
-        return Response({'detail': 'Um código já foi enviado. Aguarde 60 segundos antes de tentar novamente.'}, status=429)
+    recent = CadastroPendente.objects.filter(
+        email__iexact=email,
+        expira_em__gt=now,
+        verification_code_created_at__gt=now - timedelta(seconds=60),
+    ).order_by('-verification_code_created_at').first()
+    if recent:
+        # Uma resposta anterior pode não ter chegado ao navegador. Retomar o mesmo
+        # cadastro somente com a senha original; nunca emitir outro código no cooldown.
+        if recent.tipo == tipo and check_password(data['password'], recent.senha_hash):
+            return Response({
+                'email': recent.email,
+                'tipo': recent.tipo,
+                'registration_token': str(recent.pk),
+                'verification_required': True,
+                'detail': 'Código já enviado. Use o código recebido para confirmar o e-mail.',
+            }, status=202)
+        return Response({
+            'detail': 'Um código já foi enviado. Aguarde 60 segundos antes de tentar novamente.',
+        }, status=429)
     payload = {
         key: None if value is None else serializer.fields[key].to_representation(value)
         for key, value in data.items() if key != 'password'

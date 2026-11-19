@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from django.apps import apps
 from django.db import connection, transaction
+from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APITestCase
 
 from core.models import Aluno, Convite, Equipe, Notificacao, Professor, User
@@ -91,6 +92,21 @@ class InviteNotificationTests(APITestCase):
                 self.assertEqual(self.client.post(f"/api/convites/{invitation['id']}/{action}/").status_code, 400)
         self.assertTrue(self.team.alunos.filter(pk=self.student.pk).exists())
         self.assertFalse(self.team.professores.filter(pk=self.teacher.pk).exists())
+
+    def test_teacher_can_accept_invite_with_nullable_recipient_relations(self):
+        invite = self.send('professor').data
+        self.client.force_authenticate(self.teacher_user)
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.post(f"/api/convites/{invite['id']}/aceitar/")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertTrue(self.team.professores.filter(pk=self.teacher.pk).exists())
+        if connection.vendor == 'postgresql':
+            locking_queries = [query['sql'] for query in queries if 'FOR UPDATE' in query['sql']]
+            self.assertTrue(locking_queries)
+            # Consultas com DISTINCT ou JOINs opcionais não devem ser bloqueadas.
+            for sql in locking_queries:
+                self.assertNotIn('DISTINCT', sql.upper())
+                self.assertNotIn('LEFT OUTER JOIN', sql.upper())
 
     def test_opening_invitation_marks_read_without_joining_and_preserves_read_date(self):
         invitation = self.send().data

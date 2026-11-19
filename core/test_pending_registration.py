@@ -118,6 +118,31 @@ class PendingRegistrationTests(TestCase):
             self.assert_no_account()
             self.assertEqual(self.verify(registration, self.code()).status_code, 200)
 
+    def test_repeat_registration_recovers_existing_code_and_token_without_resending(self):
+        first = self.start().data
+        original_code = self.code()
+        original_mail_count = len(mail.outbox)
+        second = self.start()
+        self.assertEqual(second.status_code, 202, second.data)
+        self.assertEqual(second.data['registration_token'], first['registration_token'])
+        self.assertEqual(len(mail.outbox), original_mail_count)
+        self.assertEqual(CadastroPendente.objects.count(), 1)
+        self.assert_no_account()
+        self.assertEqual(self.verify(second.data, original_code).status_code, 200)
+        self.assertTrue(User.objects.get(email=first['email']).email_verified)
+
+    def test_repeat_registration_does_not_leak_token_for_wrong_password_or_profile(self):
+        first = self.start().data
+        invalid_password = self.start(password='DifferentPass456!')
+        self.assertEqual(invalid_password.status_code, 429, invalid_password.data)
+        self.assertNotIn('registration_token', invalid_password.data)
+        invalid_profile = self.start('professor', email=first['email'])
+        self.assertEqual(invalid_profile.status_code, 429, invalid_profile.data)
+        self.assertNotIn('registration_token', invalid_profile.data)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(CadastroPendente.objects.count(), 1)
+        self.assert_no_account()
+
     def test_resend_cooldown_preserves_attempts_and_does_not_create_account(self):
         registration = self.start().data
         self.assertEqual(self.resend(registration).status_code, 429)
